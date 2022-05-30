@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 import 'package:very_good_cli/src/cli/cli.dart';
+import 'package:very_good_cli/src/commands/leaf_command.dart';
 
 /// {@template packages_command}
 /// `very_good packages` command for managing packages.
@@ -25,7 +26,7 @@ class PackagesCommand extends Command<int> {
 /// {@template packages_get_command}
 /// `very_good packages get` command for installing packages.
 /// {@endtemplate}
-class PackagesGetCommand extends Command<int> {
+class PackagesGetCommand extends LeafCommand {
   /// {@macro packages_get_command}
   PackagesGetCommand({Logger? logger}) : _logger = logger ?? Logger() {
     argParser.addFlag(
@@ -37,6 +38,9 @@ class PackagesGetCommand extends Command<int> {
   }
 
   final Logger _logger;
+
+  @override
+  Logger get logger => _logger;
 
   @override
   String get description => 'Get packages in a Dart or Flutter project.';
@@ -51,7 +55,7 @@ class PackagesGetCommand extends Command<int> {
   ArgResults get _argResults => argResultOverrides ?? argResults!;
 
   @override
-  Future<int> run() async {
+  Future<int> runCommand() async {
     if (_argResults.rest.length > 1) {
       throw UsageException('Too many arguments', usage);
     }

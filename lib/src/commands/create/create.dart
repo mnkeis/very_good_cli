@@ -8,6 +8,7 @@ import 'package:usage/usage_io.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 import 'package:very_good_cli/src/command_runner.dart';
 import 'package:very_good_cli/src/commands/create/templates/templates.dart';
+import 'package:very_good_cli/src/commands/leaf_command.dart';
 
 const _defaultOrgName = 'com.example.verygoodcore';
 const _defaultDescription = 'A Very Good Project created by Very Good CLI.';
@@ -33,7 +34,7 @@ typedef GeneratorBuilder = Future<MasonGenerator> Function(MasonBundle);
 /// {@template create_command}
 /// `very_good create` command creates code from various built-in templates.
 /// {@endtemplate}
-class CreateCommand extends Command<int> {
+class CreateCommand extends LeafCommand {
   /// {@macro create_command}
   CreateCommand({
     required Analytics analytics,
@@ -110,6 +111,9 @@ class CreateCommand extends Command<int> {
   final GeneratorBuilder _generator;
 
   @override
+  Logger get logger => _logger;
+
+  @override
   String get description =>
       'Creates a new very good project in the specified directory.';
 
@@ -129,7 +133,7 @@ class CreateCommand extends Command<int> {
   ArgResults get _argResults => argResultOverrides ?? argResults!;
 
   @override
-  Future<int> run() async {
+  Future<int> runCommand() async {
     final outputDirectory = _outputDirectory;
     final projectName = _projectName;
     final description = _description;

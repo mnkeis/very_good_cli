@@ -1,12 +1,13 @@
 import 'dart:math';
 
 import 'package:args/args.dart';
-import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 import 'package:very_good_cli/src/cli/cli.dart';
+
+import 'package:very_good_cli/src/commands/leaf_command.dart';
 
 /// Signature for the [Flutter.installed] method.
 typedef FlutterInstalledCommand = Future<bool> Function();
@@ -29,7 +30,7 @@ typedef FlutterTestCommand = Future<List<int>> Function({
 /// {@template test_command}
 /// `very_good test` command for running tests.
 /// {@endtemplate}
-class TestCommand extends Command<int> {
+class TestCommand extends LeafCommand {
   /// {@macro test_command}
   TestCommand({
     Logger? logger,
@@ -87,6 +88,9 @@ class TestCommand extends Command<int> {
   final FlutterTestCommand _flutterTest;
 
   @override
+  Logger get logger => _logger;
+
+  @override
   String get description => 'Run tests in a Dart or Flutter project.';
 
   @override
@@ -99,7 +103,7 @@ class TestCommand extends Command<int> {
   ArgResults get _argResults => argResultOverrides ?? argResults!;
 
   @override
-  Future<int> run() async {
+  Future<int> runCommand() async {
     final targetPath = path.normalize(Directory.current.absolute.path);
     final pubspec = File(path.join(targetPath, 'pubspec.yaml'));
 
