@@ -95,6 +95,41 @@ class Flutter {
     );
   }
 
+  /// Upgrade flutter dependencies (`flutter packages upgrade`).
+  static Future<void> packagesUpgrade({
+    String cwd = '.',
+    bool recursive = false,
+    bool majorVersions = false,
+    void Function([String?]) Function(String message)? progress,
+  }) async {
+    await _runCommand(
+      cmd: (cwd) async {
+        final installDone = progress?.call(
+          'Running "flutter packages upgrade" in $cwd',
+        );
+
+        try {
+          await _verifyGitDependencies(cwd);
+        } catch (_) {
+          installDone?.call();
+          rethrow;
+        }
+
+        try {
+          await _Cmd.run(
+            'flutter',
+            ['packages', 'upgrade', if (majorVersions) '--major-versions'],
+            workingDirectory: cwd,
+          );
+        } finally {
+          installDone?.call();
+        }
+      },
+      cwd: cwd,
+      recursive: recursive,
+    );
+  }
+
   /// Install dart dependencies (`flutter pub get`).
   static Future<void> pubGet({
     String cwd = '.',
