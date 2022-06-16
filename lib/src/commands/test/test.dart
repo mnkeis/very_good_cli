@@ -62,6 +62,11 @@ class TestCommand extends Command<int> {
         help: 'The number of concurrent test suites run.',
       )
       ..addOption(
+        'tags',
+        abbr: 't',
+        help: 'Run only tests associated with the specified tags.',
+      )
+      ..addOption(
         'exclude-coverage',
         help: 'A glob which will be used to exclude files that match from the '
             'coverage.',
@@ -125,6 +130,7 @@ This command should be run from the root of your Flutter project.''',
       _argResults['min-coverage'] as String? ?? '',
     );
     final excludeTags = _argResults['exclude-tags'] as String?;
+    final tags = _argResults['tags'] as String?;
     final isFlutterInstalled = await _flutterInstalled();
     final excludeFromCoverage = _argResults['exclude-coverage'] as String?;
     final randomOrderingSeed =
@@ -150,6 +156,7 @@ This command should be run from the root of your Flutter project.''',
           randomSeed: randomSeed,
           arguments: [
             if (excludeTags != null) ...['-x', excludeTags],
+            if (tags != null) ...['-t', tags],
             if (updateGoldens) '--update-goldens',
             ...['-j', concurrency],
             '--no-pub',

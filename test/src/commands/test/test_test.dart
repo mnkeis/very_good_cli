@@ -21,6 +21,7 @@ const expectedTestUsage = [
       '                                      (defaults to on)\n'
       '''-j, --concurrency                     The number of concurrent test suites run.\n'''
       '                                      (defaults to "4")\n'
+      '''-t, --tags                            Run only tests associated with the specified tags.\n'''
       '''    --exclude-coverage                A glob which will be used to exclude files that match from the coverage.\n'''
       '''-x, --exclude-tags                    Run only tests that do not have the specified tags.\n'''
       '''    --min-coverage                    Whether to enforce a minimum coverage percentage.\n'''
@@ -283,6 +284,21 @@ void main() {
           collectCoverage: true,
           optimizePerformance: true,
           arguments: defaultArguments,
+          progress: logger.progress,
+          stdout: logger.write,
+          stderr: logger.err,
+        ),
+      ).called(1);
+    });
+
+    test('completes normally -t test-tag', () async {
+      when<dynamic>(() => argResults['tags']).thenReturn('test-tag');
+      final result = await testCommand.run();
+      expect(result, equals(ExitCode.success.code));
+      verify(
+        () => flutterTest(
+          optimizePerformance: true,
+          arguments: ['-t', 'test-tag', ...defaultArguments],
           progress: logger.progress,
           stdout: logger.write,
           stderr: logger.err,

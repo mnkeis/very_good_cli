@@ -483,12 +483,12 @@ void main() {
             );
 
           final result = await commandRunner.run(
-            ['packages', 'get', '--recursive', directory.path],
+            ['packages', 'upgrade', '--recursive', directory.path],
           );
           expect(result, equals(ExitCode.success.code));
           verify(() {
             logger.progress(
-              any(that: contains('Running "flutter packages get" in')),
+              any(that: contains('Running "flutter packages upgrade" in')),
             );
           }).called(2);
         }),
