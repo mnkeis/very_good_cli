@@ -10,6 +10,8 @@ class MockAnalytics extends Mock implements Analytics {}
 
 class MockLogger extends Mock implements Logger {}
 
+class MockProgress extends Mock implements Progress {}
+
 class MockPubUpdater extends Mock implements PubUpdater {}
 
 void Function() _overridePrint(void Function(List<String>) fn) {
@@ -31,6 +33,7 @@ void Function() withRunner(
   FutureOr<void> Function(
     VeryGoodCommandRunner commandRunner,
     Logger logger,
+    PubUpdater pubUpdater,
     List<String> printLogs,
   )
       runnerFn,
@@ -38,6 +41,7 @@ void Function() withRunner(
   return _overridePrint((printLogs) async {
     final analytics = MockAnalytics();
     final logger = MockLogger();
+    final progress = MockProgress();
     final pubUpdater = MockPubUpdater();
     final progressLogs = <String>[];
     final commandRunner = VeryGoodCommandRunner(
@@ -54,11 +58,11 @@ void Function() withRunner(
     when(
       () => analytics.waitForLastPing(timeout: any(named: 'timeout')),
     ).thenAnswer((_) async {});
-    when(() => logger.progress(any())).thenReturn(
-      ([_]) {
-        if (_ != null) progressLogs.add(_);
-      },
-    );
+    when(() => progress.complete(any())).thenAnswer((_) {
+      final message = _.positionalArguments.elementAt(0) as String?;
+      if (message != null) progressLogs.add(message);
+    });
+    when(() => logger.progress(any())).thenReturn(progress);
     when(
       () => pubUpdater.isUpToDate(
         packageName: any(named: 'packageName'),
@@ -66,6 +70,6 @@ void Function() withRunner(
       ),
     ).thenAnswer((_) => Future.value(true));
 
-    await runnerFn(commandRunner, logger, printLogs);
+    await runnerFn(commandRunner, logger, pubUpdater, printLogs);
   });
 }

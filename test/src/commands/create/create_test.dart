@@ -23,11 +23,13 @@ const expectedUsage = [
       '''    --project-name            The project name for this new project. This must be a valid dart package name.\n'''
       '    --desc                    The description for this new project.\n'
       '''                              (defaults to "A Very Good Project created by Very Good CLI.")\n'''
+      '''    --executable-name         Used by the dart_cli template, the CLI executable name (defaults to the project name)\n'''
       '    --org-name                The organization for this new project.\n'
       '                              (defaults to "com.example.verygoodcore")\n'
       '''-t, --template                The template used to generate this new project.\n'''
       '\n'
       '''          [core] (default)    Generate a Very Good Flutter application.\n'''
+      '''          [dart_cli]          Generate a Very Good Dart CLI application.\n'''
       '          [dart_pkg]          Generate a reusable Dart package.\n'
       '          [flutter_pkg]       Generate a reusable Flutter package.\n'
       '          [flutter_plugin]    Generate a reusable Flutter plugin.\n'
@@ -60,9 +62,13 @@ class MockAnalytics extends Mock implements Analytics {}
 
 class MockLogger extends Mock implements Logger {}
 
+class MockProgress extends Mock implements Progress {}
+
 class MockPubUpdater extends Mock implements PubUpdater {}
 
 class MockMasonGenerator extends Mock implements MasonGenerator {}
+
+class MockGeneratorHooks extends Mock implements GeneratorHooks {}
 
 class FakeDirectoryGeneratorTarget extends Fake
     implements DirectoryGeneratorTarget {}
@@ -74,6 +80,7 @@ void main() {
     late List<String> progressLogs;
     late Analytics analytics;
     late Logger logger;
+    late Progress progress;
 
     final generatedFiles = List.filled(
       62,
@@ -98,16 +105,17 @@ void main() {
       ).thenAnswer((_) async {});
 
       logger = MockLogger();
-      when(() => logger.progress(any())).thenReturn(
-        ([_]) {
-          if (_ != null) progressLogs.add(_);
-        },
-      );
+      progress = MockProgress();
+      when(() => progress.complete(any())).thenAnswer((_) {
+        final message = _.positionalArguments.elementAt(0) as String?;
+        if (message != null) progressLogs.add(message);
+      });
+      when(() => logger.progress(any())).thenReturn(progress);
     });
 
     test(
       'help',
-      withRunner((commandRunner, logger, printLogs) async {
+      withRunner((commandRunner, logger, pubUpdater, printLogs) async {
         final result = await commandRunner.run(['create', '--help']);
         expect(printLogs, equals(expectedUsage));
         expect(result, equals(ExitCode.success.code));
@@ -128,7 +136,7 @@ void main() {
     test(
       'throws UsageException when --project-name is missing '
       'and directory base is not a valid package name',
-      withRunner((commandRunner, logger, printLogs) async {
+      withRunner((commandRunner, logger, pubUpdater, printLogs) async {
         const expectedErrorMessage = '".tmp" is not a valid package name.\n\n'
             'See https://dart.dev/tools/pub/pubspec#name for more information.';
         final result = await commandRunner.run(['create', '.tmp']);
@@ -139,7 +147,7 @@ void main() {
 
     test(
       'throws UsageException when --project-name is invalid',
-      withRunner((commandRunner, logger, printLogs) async {
+      withRunner((commandRunner, logger, pubUpdater, printLogs) async {
         const expectedErrorMessage = '"My App" is not a valid package name.\n\n'
             'See https://dart.dev/tools/pub/pubspec#name for more information.';
         final result = await commandRunner.run(
@@ -152,7 +160,7 @@ void main() {
 
     test(
       'throws UsageException when output directory is missing',
-      withRunner((commandRunner, logger, printLogs) async {
+      withRunner((commandRunner, logger, pubUpdater, printLogs) async {
         const expectedErrorMessage =
             'No option specified for the output directory.';
         final result = await commandRunner.run(['create']);
@@ -163,7 +171,7 @@ void main() {
 
     test(
       'throws UsageException when multiple output directories are provided',
-      withRunner((commandRunner, logger, printLogs) async {
+      withRunner((commandRunner, logger, pubUpdater, printLogs) async {
         const expectedErrorMessage = 'Multiple output directories specified.';
         final result = await commandRunner.run(['create', './a', './b']);
         expect(result, equals(ExitCode.usage.code));
@@ -173,6 +181,7 @@ void main() {
 
     test('completes successfully with correct output', () async {
       final argResults = MockArgResults();
+      final hooks = MockGeneratorHooks();
       final generator = MockMasonGenerator();
       final command = CreateCommand(
         analytics: analytics,
@@ -183,6 +192,13 @@ void main() {
       when(() => argResults.rest).thenReturn(['.tmp']);
       when(() => generator.id).thenReturn('generator_id');
       when(() => generator.description).thenReturn('generator description');
+      when(() => generator.hooks).thenReturn(hooks);
+      when(
+        () => hooks.preGen(
+          vars: any(named: 'vars'),
+          onVarsChanged: any(named: 'onVarsChanged'),
+        ),
+      ).thenAnswer((_) async {});
       when(
         () => generator.generate(
           any(),
@@ -217,6 +233,7 @@ void main() {
             'project_name': 'my_app',
             'org_name': 'com.example.verygoodcore',
             'description': '',
+            'executable_name': 'my_app',
             'android': true,
             'ios': true,
             'web': true,
@@ -241,6 +258,7 @@ void main() {
 
     test('completes successfully w/ custom description', () async {
       final argResults = MockArgResults();
+      final hooks = MockGeneratorHooks();
       final generator = MockMasonGenerator();
       final command = CreateCommand(
         analytics: analytics,
@@ -254,6 +272,13 @@ void main() {
       when(() => argResults.rest).thenReturn(['.tmp']);
       when(() => generator.id).thenReturn('generator_id');
       when(() => generator.description).thenReturn('generator description');
+      when(() => generator.hooks).thenReturn(hooks);
+      when(
+        () => hooks.preGen(
+          vars: any(named: 'vars'),
+          onVarsChanged: any(named: 'onVarsChanged'),
+        ),
+      ).thenAnswer((_) async {});
       when(
         () => generator.generate(
           any(),
@@ -279,6 +304,7 @@ void main() {
             'project_name': 'my_app',
             'org_name': 'com.example.verygoodcore',
             'description': 'very good description',
+            'executable_name': 'my_app',
             'android': true,
             'ios': true,
             'web': true,
@@ -296,7 +322,7 @@ void main() {
         test(
           'is a valid alias',
           withRunner(
-            (commandRunner, logger, printLogs) async {
+            (commandRunner, logger, pubUpdater, printLogs) async {
               const orgName = 'com.my.org';
               final tempDir = Directory.systemTemp.createTempSync();
               final result = await commandRunner.run(
@@ -321,7 +347,7 @@ void main() {
 
         test(
           'no delimiters',
-          withRunner((commandRunner, logger, printLogs) async {
+          withRunner((commandRunner, logger, pubUpdater, printLogs) async {
             const orgName = 'My App';
             final result = await commandRunner.run(
               ['create', '.', '--org-name', orgName],
@@ -333,7 +359,7 @@ void main() {
 
         test(
           'less than 2 domains',
-          withRunner((commandRunner, logger, printLogs) async {
+          withRunner((commandRunner, logger, pubUpdater, printLogs) async {
             const orgName = 'verybadtest';
             final result = await commandRunner.run(
               ['create', '.', '--org-name', orgName],
@@ -345,7 +371,7 @@ void main() {
 
         test(
           'invalid characters present',
-          withRunner((commandRunner, logger, printLogs) async {
+          withRunner((commandRunner, logger, pubUpdater, printLogs) async {
             const orgName = 'very%.bad@.#test';
             final result = await commandRunner.run(
               ['create', '.', '--org-name', orgName],
@@ -357,7 +383,7 @@ void main() {
 
         test(
           'segment starts with a non-letter',
-          withRunner((commandRunner, logger, printLogs) async {
+          withRunner((commandRunner, logger, pubUpdater, printLogs) async {
             const orgName = 'very.bad.1test';
             final result = await commandRunner.run(
               ['create', '.', '--org-name', orgName],
@@ -369,7 +395,7 @@ void main() {
 
         test(
           'valid prefix but invalid suffix',
-          withRunner((commandRunner, logger, printLogs) async {
+          withRunner((commandRunner, logger, pubUpdater, printLogs) async {
             const orgName = 'very.good.prefix.bad@@suffix';
             final result = await commandRunner.run(
               ['create', '.', '--org-name', orgName],
@@ -383,6 +409,7 @@ void main() {
       group('valid --org-name', () {
         Future<void> expectValidOrgName(String orgName) async {
           final argResults = MockArgResults();
+          final hooks = MockGeneratorHooks();
           final generator = MockMasonGenerator();
           final command = CreateCommand(
             analytics: analytics,
@@ -396,6 +423,13 @@ void main() {
           when(() => argResults.rest).thenReturn(['.tmp']);
           when(() => generator.id).thenReturn('generator_id');
           when(() => generator.description).thenReturn('generator description');
+          when(() => generator.hooks).thenReturn(hooks);
+          when(
+            () => hooks.preGen(
+              vars: any(named: 'vars'),
+              onVarsChanged: any(named: 'onVarsChanged'),
+            ),
+          ).thenAnswer((_) async {});
           when(
             () => generator.generate(
               any(),
@@ -420,6 +454,7 @@ void main() {
               vars: <String, dynamic>{
                 'project_name': 'my_app',
                 'description': '',
+                'executable_name': 'my_app',
                 'org_name': orgName,
                 'android': true,
                 'ios': true,
@@ -463,7 +498,7 @@ void main() {
       group('invalid template name', () {
         test(
           'invalid template name',
-          withRunner((commandRunner, logger, printLogs) async {
+          withRunner((commandRunner, logger, pubUpdater, printLogs) async {
             const templateName = 'badtemplate';
             const expectedErrorMessage =
                 '''"$templateName" is not an allowed value for option "template".''';
@@ -484,6 +519,7 @@ void main() {
           required String expectedLogSummary,
         }) async {
           final argResults = MockArgResults();
+          final hooks = MockGeneratorHooks();
           final generator = MockMasonGenerator();
           final command = CreateCommand(
             analytics: analytics,
@@ -502,6 +538,13 @@ void main() {
           when(() => argResults.rest).thenReturn(['.tmp']);
           when(() => generator.id).thenReturn('generator_id');
           when(() => generator.description).thenReturn('generator description');
+          when(() => generator.hooks).thenReturn(hooks);
+          when(
+            () => hooks.preGen(
+              vars: any(named: 'vars'),
+              onVarsChanged: any(named: 'onVarsChanged'),
+            ),
+          ).thenAnswer((_) async {});
           when(
             () => generator.generate(
               any(),
@@ -535,6 +578,7 @@ void main() {
               vars: <String, dynamic>{
                 'project_name': 'my_app',
                 'org_name': 'com.example.verygoodcore',
+                'executable_name': 'my_app',
                 'description': '',
                 'android': true,
                 'ios': true,
@@ -593,6 +637,15 @@ void main() {
             templateName: 'flutter_plugin',
             expectedBundle: flutterPluginBundle,
             expectedLogSummary: 'Created a Very Good Flutter Plugin! 🦄',
+          );
+        });
+
+        test('dart CLI template', () async {
+          await expectValidTemplateName(
+            getPackagesMsg: 'Running "flutter pub get" in .tmp',
+            templateName: 'dart_cli',
+            expectedBundle: veryGoodDartCliBundle,
+            expectedLogSummary: 'Created a Very Good Dart CLI application! 🦄',
           );
         });
       });

@@ -66,7 +66,7 @@ class PackagesGetCommand extends Command<int> {
         await Flutter.packagesGet(
           cwd: targetPath,
           recursive: recursive,
-          progress: _logger.progress,
+          logger: _logger,
         );
       } on PubspecNotFound catch (_) {
         _logger.err('Could not find a pubspec.yaml in $targetPath');

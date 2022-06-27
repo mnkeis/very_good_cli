@@ -42,7 +42,7 @@ abstract class FlutterTestCommand {
     String? excludeFromCoverage,
     String? randomSeed,
     List<String>? arguments,
-    void Function([String?]) Function(String message)? progress,
+    Logger? logger,
     void Function(String)? stdout,
     void Function(String)? stderr,
   });
@@ -87,7 +87,7 @@ void main() {
           excludeFromCoverage: any(named: 'excludeFromCoverage'),
           randomSeed: any(named: 'randomSeed'),
           arguments: any(named: 'arguments'),
-          progress: any(named: 'progress'),
+          logger: any(named: 'logger'),
           stdout: any(named: 'stdout'),
           stderr: any(named: 'stderr'),
         ),
@@ -102,7 +102,7 @@ void main() {
 
     test(
       'help',
-      withRunner((commandRunner, logger, printLogs) async {
+      withRunner((commandRunner, logger, pubUpdater, printLogs) async {
         final result = await commandRunner.run(['test', '--help']);
         expect(printLogs, equals(expectedTestUsage));
         expect(result, equals(ExitCode.success.code));
@@ -118,7 +118,7 @@ void main() {
     test(
       'throws pubspec not found exception '
       'when no pubspec.yaml exists',
-      withRunner((commandRunner, logger, printLogs) async {
+      withRunner((commandRunner, logger, pubUpdater, printLogs) async {
         final directory = Directory.systemTemp.createTempSync();
         Directory.current = directory.path;
         final result = await commandRunner.run(['test']);
@@ -132,7 +132,7 @@ void main() {
     test(
       'throws pubspec not found exception '
       'when no pubspec.yaml exists (recursive)',
-      withRunner((commandRunner, logger, printLogs) async {
+      withRunner((commandRunner, logger, pubUpdater, printLogs) async {
         final directory = Directory.systemTemp.createTempSync();
         Directory.current = directory.path;
         final result = await commandRunner.run(['test', '-r']);
@@ -150,7 +150,7 @@ void main() {
         () => flutterTest(
           optimizePerformance: true,
           arguments: defaultArguments,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -167,7 +167,7 @@ void main() {
           minCoverage: any(named: 'minCoverage'),
           excludeFromCoverage: any(named: 'excludeFromCoverage'),
           arguments: any(named: 'arguments'),
-          progress: any(named: 'progress'),
+          logger: any(named: 'logger'),
           stdout: any(named: 'stdout'),
           stderr: any(named: 'stderr'),
         ),
@@ -187,7 +187,7 @@ void main() {
           recursive: true,
           optimizePerformance: true,
           arguments: defaultArguments,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -202,7 +202,7 @@ void main() {
         () => flutterTest(
           arguments: ['-j', '1', '--no-pub'],
           optimizePerformance: true,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -216,7 +216,7 @@ void main() {
       verify(
         () => flutterTest(
           arguments: defaultArguments,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -230,7 +230,7 @@ void main() {
       verify(
         () => flutterTest(
           arguments: ['--update-goldens', ...defaultArguments],
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -248,7 +248,7 @@ void main() {
           arguments: defaultArguments,
           optimizePerformance: true,
           randomSeed: any(named: 'randomSeed', that: isNotEmpty),
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -268,7 +268,7 @@ void main() {
           arguments: defaultArguments,
           randomSeed: randomSeed,
           optimizePerformance: true,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -284,7 +284,7 @@ void main() {
           collectCoverage: true,
           optimizePerformance: true,
           arguments: defaultArguments,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -299,7 +299,7 @@ void main() {
         () => flutterTest(
           optimizePerformance: true,
           arguments: ['-t', 'test-tag', ...defaultArguments],
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -314,7 +314,7 @@ void main() {
         () => flutterTest(
           optimizePerformance: true,
           arguments: ['-x', 'test-tag', ...defaultArguments],
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -332,7 +332,7 @@ void main() {
           collectCoverage: true,
           arguments: defaultArguments,
           minCoverage: 0,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -350,7 +350,7 @@ void main() {
           collectCoverage: true,
           arguments: defaultArguments,
           minCoverage: 0,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -370,7 +370,7 @@ void main() {
           minCoverage: any(named: 'minCoverage'),
           excludeFromCoverage: any(named: 'excludeFromCoverage'),
           arguments: any(named: 'arguments'),
-          progress: any(named: 'progress'),
+          logger: any(named: 'logger'),
           stdout: any(named: 'stdout'),
           stderr: any(named: 'stderr'),
         ),
@@ -383,7 +383,7 @@ void main() {
           collectCoverage: true,
           arguments: defaultArguments,
           minCoverage: 100,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -407,7 +407,7 @@ void main() {
           collectCoverage: true,
           excludeFromCoverage: '*.g.dart',
           arguments: defaultArguments,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),
@@ -425,7 +425,7 @@ void main() {
           minCoverage: any(named: 'minCoverage'),
           excludeFromCoverage: any(named: 'excludeFromCoverage'),
           arguments: any(named: 'arguments'),
-          progress: any(named: 'progress'),
+          logger: any(named: 'logger'),
           stdout: any(named: 'stdout'),
           stderr: any(named: 'stderr'),
         ),
@@ -436,7 +436,7 @@ void main() {
         () => flutterTest(
           optimizePerformance: true,
           arguments: defaultArguments,
-          progress: logger.progress,
+          logger: logger,
           stdout: logger.write,
           stderr: logger.err,
         ),

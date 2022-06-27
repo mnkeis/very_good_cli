@@ -55,7 +55,7 @@ void main() {
   group('packages', () {
     test(
       'help',
-      withRunner((commandRunner, logger, printLogs) async {
+      withRunner((commandRunner, logger, pubUpdater, printLogs) async {
         final result = await commandRunner.run(['packages', '--help']);
         expect(printLogs, equals(expectedPackagesUsage));
         expect(result, equals(ExitCode.success.code));
@@ -71,7 +71,7 @@ void main() {
     group('get', () {
       test(
         'help',
-        withRunner((commandRunner, logger, printLogs) async {
+        withRunner((commandRunner, logger, pubUpdater, printLogs) async {
           final result = await commandRunner.run(['packages', 'get', '--help']);
           expect(printLogs, equals(expectedPackagesGetUsage));
           expect(result, equals(ExitCode.success.code));
@@ -87,7 +87,7 @@ void main() {
       test(
         'throws usage exception '
         'when too many arguments are provided',
-        withRunner((commandRunner, logger, printLogs) async {
+        withRunner((commandRunner, logger, pubUpdater, printLogs) async {
           final result = await commandRunner.run(
             ['packages', 'get', 'arg1', 'arg2'],
           );
@@ -98,7 +98,7 @@ void main() {
       test(
         'throws pubspec not found exception '
         'when no pubspec.yaml exists',
-        withRunner((commandRunner, logger, printLogs) async {
+        withRunner((commandRunner, logger, pubUpdater, printLogs) async {
           final result = await commandRunner.run(['packages', 'get', 'test']);
           expect(result, equals(ExitCode.noInput.code));
           verify(() {
@@ -110,7 +110,7 @@ void main() {
       test(
         'throws pubspec not found exception '
         'when no pubspec.yaml exists (recursive)',
-        withRunner((commandRunner, logger, printLogs) async {
+        withRunner((commandRunner, logger, pubUpdater, printLogs) async {
           final result = await commandRunner.run(
             ['packages', 'get', '-r', 'test'],
           );
@@ -123,7 +123,7 @@ void main() {
 
       test(
         'throws when installation fails',
-        withRunner((commandRunner, logger, printLogs) async {
+        withRunner((commandRunner, logger, pubUpdater, printLogs) async {
           final directory = Directory.systemTemp.createTempSync();
           File(path.join(directory.path, 'pubspec.yaml')).writeAsStringSync('');
           final result = await commandRunner.run(
@@ -135,7 +135,7 @@ void main() {
 
       test(
         'ignores .fvm directory',
-        withRunner((commandRunner, logger, printLogs) async {
+        withRunner((commandRunner, logger, pubUpdater, printLogs) async {
           final tempDirectory = Directory.systemTemp.createTempSync();
           final directory = Directory(path.join(tempDirectory.path, '.fvm'))
             ..createSync();
@@ -161,7 +161,7 @@ void main() {
       test(
         'completes normally '
         'when pubspec.yaml exists',
-        withRunner((commandRunner, logger, printLogs) async {
+        withRunner((commandRunner, logger, pubUpdater, printLogs) async {
           final directory = Directory.systemTemp.createTempSync();
           File(path.join(directory.path, 'pubspec.yaml')).writeAsStringSync(
             '''
@@ -187,7 +187,7 @@ void main() {
       test(
         'completes normally '
         'when pubspec.yaml exists (recursive)',
-        withRunner((commandRunner, logger, printLogs) async {
+        withRunner((commandRunner, logger, pubUpdater, printLogs) async {
           final directory = Directory.systemTemp.createTempSync();
           final pubspecA = File(
             path.join(directory.path, 'example_a', 'pubspec.yaml'),
@@ -233,7 +233,7 @@ void main() {
       test(
         'completes normally '
         'when pubspec.yaml exists and directory is not ignored (recursive)',
-        withRunner((commandRunner, logger, printLogs) async {
+        withRunner((commandRunner, logger, pubUpdater, printLogs) async {
           final tempDirectory = Directory.systemTemp.createTempSync();
           final directory = Directory(
             path.join(tempDirectory.path, 'macos_plugin'),
