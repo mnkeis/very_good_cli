@@ -131,7 +131,7 @@ class PackagesUpgradeCommand extends Command<int> {
           cwd: targetPath,
           recursive: recursive,
           majorVersions: majorVersions,
-          progress: _logger.progress,
+          logger: _logger,
         );
       } on PubspecNotFound catch (_) {
         _logger.err('Could not find a pubspec.yaml in $targetPath');

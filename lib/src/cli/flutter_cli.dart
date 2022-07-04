@@ -100,18 +100,18 @@ class Flutter {
     String cwd = '.',
     bool recursive = false,
     bool majorVersions = false,
-    void Function([String?]) Function(String message)? progress,
+    Logger? logger,
   }) async {
     await _runCommand(
       cmd: (cwd) async {
-        final installDone = progress?.call(
+        final upgradeProgress = logger?.progress(
           'Running "flutter packages upgrade" in $cwd',
         );
 
         try {
           await _verifyGitDependencies(cwd);
         } catch (_) {
-          installDone?.call();
+          upgradeProgress?.fail();
           rethrow;
         }
 
@@ -122,7 +122,7 @@ class Flutter {
             workingDirectory: cwd,
           );
         } finally {
-          installDone?.call();
+          upgradeProgress?.complete();
         }
       },
       cwd: cwd,
