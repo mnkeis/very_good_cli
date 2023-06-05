@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart' hide packageVersion;
 import 'package:pub_updater/pub_updater.dart';
@@ -10,9 +12,9 @@ import 'package:very_good_cli/src/version.dart';
 class UpdateCommand extends Command<int> {
   /// {@macro update_command}
   UpdateCommand({
-    Logger? logger,
+    required Logger logger,
     PubUpdater? pubUpdater,
-  })  : _logger = logger ?? Logger(),
+  })  : _logger = logger,
         _pubUpdater = pubUpdater ?? PubUpdater();
 
   final Logger _logger;
@@ -21,8 +23,11 @@ class UpdateCommand extends Command<int> {
   @override
   String get description => 'Update Very Good CLI.';
 
+  /// The [name] of the command. But static.
+  static const String commandName = 'update';
+
   @override
-  String get name => 'update';
+  String get name => commandName;
 
   @override
   Future<int> run() async {
@@ -44,13 +49,26 @@ class UpdateCommand extends Command<int> {
     }
 
     final updateProgress = _logger.progress('Updating to $latestVersion');
+
+    late ProcessResult result;
+
     try {
-      await _pubUpdater.update(packageName: packageName);
+      result = await _pubUpdater.update(
+        packageName: packageName,
+        versionConstraint: latestVersion,
+      );
     } catch (error) {
       updateProgress.fail();
       _logger.err('$error');
       return ExitCode.software.code;
     }
+
+    if (result.exitCode != ExitCode.success.code) {
+      updateProgress.fail();
+      _logger.err('Error updating Very Good CLI: ${result.stderr}');
+      return ExitCode.software.code;
+    }
+
     updateProgress.complete('Updated to $latestVersion');
 
     return ExitCode.success.code;

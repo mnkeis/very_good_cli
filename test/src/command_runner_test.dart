@@ -1,5 +1,6 @@
 // ignore_for_file: no_adjacent_strings_in_list
 import 'dart:async';
+import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart' hide packageVersion;
@@ -16,21 +17,25 @@ class MockLogger extends Mock implements Logger {}
 
 class MockPubUpdater extends Mock implements PubUpdater {}
 
+class MockProgress extends Mock implements Progress {}
+
 const expectedUsage = [
-  '🦄 A Very Good Command Line Interface\n'
+  '🦄 A Very Good Command-Line Interface\n'
       '\n'
       'Usage: very_good <command> [arguments]\n'
       '\n'
       'Global options:\n'
-      '-h, --help           Print this usage information.\n'
-      '    --version        Print the current version.\n'
-      '    --analytics      Toggle anonymous usage statistics.\n'
+      '-h, --help            Print this usage information.\n'
+      '    --version         Print the current version.\n'
+      '    --analytics       Toggle anonymous usage statistics.\n'
       '\n'
-      '          [false]    Disable anonymous usage statistics\n'
-      '          [true]     Enable anonymous usage statistics\n'
+      '          [false]     Disable anonymous usage statistics\n'
+      '          [true]      Enable anonymous usage statistics\n'
+      '\n'
+      '''    --[no-]verbose    Noisy logging, including all shell commands executed.\n'''
       '\n'
       'Available commands:\n'
-      '  create     very_good create <output directory>\n'
+      '  create     very_good create <subcommand> <project-name> [arguments]\n'
       '''             Creates a new very good project in the specified directory.\n'''
       '  packages   Command for managing packages.\n'
       '  test       Run tests in a Dart or Flutter project.\n'
@@ -50,27 +55,20 @@ ${lightYellow.wrap('Changelog:')} ${lightCyan.wrap('https://github.com/verygoodo
 Run ${lightCyan.wrap('very_good update')} to update''';
 
 void main() {
+  final successProcessResult = ProcessResult(
+    42,
+    ExitCode.success.code,
+    '',
+    '',
+  );
+
   group('VeryGoodCommandRunner', () {
-    late List<String> printLogs;
     late Analytics analytics;
     late PubUpdater pubUpdater;
     late Logger logger;
     late VeryGoodCommandRunner commandRunner;
 
-    void Function() overridePrint(void Function() fn) {
-      return () {
-        final spec = ZoneSpecification(
-          print: (_, __, ___, String msg) {
-            printLogs.add(msg);
-          },
-        );
-        return Zone.current.fork(specification: spec).run<void>(fn);
-      };
-    }
-
     setUp(() {
-      printLogs = [];
-
       analytics = MockAnalytics();
       pubUpdater = MockPubUpdater();
 
@@ -105,6 +103,38 @@ void main() {
         expect(result, equals(ExitCode.success.code));
         verify(() => logger.info(updatePrompt)).called(1);
       });
+
+      test(
+        'does not show update message when using the update command',
+        () async {
+          when(
+            () => pubUpdater.getLatestVersion(any()),
+          ).thenAnswer((_) async => latestVersion);
+          when(
+            () => pubUpdater.update(
+              packageName: packageName,
+              versionConstraint: latestVersion,
+            ),
+          ).thenAnswer((_) => Future.value(successProcessResult));
+          when(
+            () => pubUpdater.isUpToDate(
+              packageName: any(named: 'packageName'),
+              currentVersion: any(named: 'currentVersion'),
+            ),
+          ).thenAnswer((_) => Future.value(true));
+          final progress = MockProgress();
+          final progressLogs = <String>[];
+          when(() => progress.complete(any())).thenAnswer((_) {
+            final message = _.positionalArguments.elementAt(0) as String?;
+            if (message != null) progressLogs.add(message);
+          });
+          when(() => logger.progress(any())).thenReturn(progress);
+
+          final result = await commandRunner.run(['update']);
+          expect(result, equals(ExitCode.success.code));
+          verifyNever(() => logger.info(updatePrompt));
+        },
+      );
 
       test('handles pub update errors gracefully', () async {
         when(
@@ -162,30 +192,34 @@ void main() {
         verify(() => logger.info('exception usage')).called(1);
       });
 
-      test(
-        'handles no command',
-        overridePrint(() async {
-          final result = await commandRunner.run([]);
-          expect(printLogs, equals(expectedUsage));
-          expect(result, equals(ExitCode.success.code));
-        }),
-      );
+      test('handles no command', () async {
+        final result = await commandRunner.run([]);
+        verify(() => logger.info(expectedUsage.join())).called(1);
+        expect(result, equals(ExitCode.success.code));
+      });
+
+      test('handles completion command', () async {
+        final result = await commandRunner.run(['completion']);
+        verifyNever(() => logger.info(any()));
+        verifyNever(() => logger.err(any()));
+        verifyNever(() => logger.warn(any()));
+        verifyNever(() => logger.write(any()));
+        verifyNever(() => logger.success(any()));
+        verifyNever(() => logger.detail(any()));
+
+        expect(result, equals(ExitCode.success.code));
+      });
 
       group('--help', () {
-        test(
-          'outputs usage',
-          overridePrint(() async {
-            final result = await commandRunner.run(['--help']);
-            expect(printLogs, equals(expectedUsage));
-            expect(result, equals(ExitCode.success.code));
+        test('outputs usage', () async {
+          final result = await commandRunner.run(['--help']);
+          verify(() => logger.info(expectedUsage.join())).called(1);
+          expect(result, equals(ExitCode.success.code));
 
-            printLogs.clear();
-
-            final resultAbbr = await commandRunner.run(['-h']);
-            expect(printLogs, equals(expectedUsage));
-            expect(resultAbbr, equals(ExitCode.success.code));
-          }),
-        );
+          final resultAbbr = await commandRunner.run(['-h']);
+          verify(() => logger.info(expectedUsage.join())).called(1);
+          expect(resultAbbr, equals(ExitCode.success.code));
+        });
       });
 
       group('--analytics', () {
@@ -223,6 +257,42 @@ void main() {
           final result = await commandRunner.run(['--version']);
           expect(result, equals(ExitCode.success.code));
           verify(() => logger.info(packageVersion)).called(1);
+        });
+      });
+
+      group('--verbose', () {
+        test('enables verbose logging', () async {
+          final result = await commandRunner.run(['--verbose']);
+          expect(result, equals(ExitCode.success.code));
+
+          verify(() => logger.detail('Argument information:')).called(1);
+          verify(() => logger.detail('  Top level options:')).called(1);
+          verify(() => logger.detail('  - verbose: true')).called(1);
+          verifyNever(() => logger.detail('    Command options:'));
+        });
+
+        test('logs that analytics is enabled', () async {
+          when(() => analytics.enabled).thenReturn(true);
+          final result = await commandRunner.run(['--verbose']);
+          expect(result, equals(ExitCode.success.code));
+          verify(
+            () => logger.detail('Running with analytics enabled.'),
+          ).called(1);
+        });
+
+        test('enables verbose logging for sub commands', () async {
+          final result = await commandRunner.run([
+            '--verbose',
+            'create',
+            '--help',
+          ]);
+          expect(result, equals(ExitCode.success.code));
+
+          verify(() => logger.detail('Argument information:')).called(1);
+          verify(() => logger.detail('  Top level options:')).called(1);
+          verify(() => logger.detail('  - verbose: true')).called(1);
+          verify(() => logger.detail('  Command: create')).called(1);
+          verify(() => logger.detail('    - help: true')).called(1);
         });
       });
     });

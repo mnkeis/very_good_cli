@@ -9,10 +9,13 @@ import 'package:universal_io/io.dart';
 import 'package:very_good_cli/src/cli/cli.dart';
 
 /// Signature for the [Flutter.installed] method.
-typedef FlutterInstalledCommand = Future<bool> Function();
+typedef FlutterInstalledCommand = Future<bool> Function({
+  required Logger logger,
+});
 
 /// Signature for the [Flutter.test] method.
 typedef FlutterTestCommand = Future<List<int>> Function({
+  required Logger logger,
   String cwd,
   bool recursive,
   bool collectCoverage,
@@ -20,8 +23,8 @@ typedef FlutterTestCommand = Future<List<int>> Function({
   double? minCoverage,
   String? excludeFromCoverage,
   String? randomSeed,
+  bool? forceAnsi,
   List<String>? arguments,
-  Logger? logger,
   void Function(String)? stdout,
   void Function(String)? stderr,
 });
@@ -32,10 +35,10 @@ typedef FlutterTestCommand = Future<List<int>> Function({
 class TestCommand extends Command<int> {
   /// {@macro test_command}
   TestCommand({
-    Logger? logger,
+    required Logger logger,
     FlutterInstalledCommand? flutterInstalled,
     FlutterTestCommand? flutterTest,
-  })  : _logger = logger ?? Logger(),
+  })  : _logger = logger,
         _flutterInstalled = flutterInstalled ?? Flutter.installed,
         _flutterTest = flutterTest ?? Flutter.test {
     argParser
@@ -90,6 +93,22 @@ class TestCommand extends Command<int> {
         help: 'Whether "matchesGoldenFile()" calls within your test methods '
             'should update the golden files.',
         negatable: false,
+      )
+      ..addFlag(
+        'force-ansi',
+        defaultsTo: null,
+        help: 'Whether to force ansi output. If not specified, '
+            'it will maintain the default behavior based on stdout and stderr.',
+        negatable: false,
+      )
+      ..addMultiOption(
+        'dart-define',
+        help: 'Additional key-value pairs that will be available as constants '
+            'from the String.fromEnvironment, bool.fromEnvironment, '
+            'int.fromEnvironment, and double.fromEnvironment constructors. '
+            'Multiple defines can be passed by repeating '
+            '"--dart-define" multiple times.',
+        valueHelp: 'foo=bar',
       );
   }
 
@@ -113,8 +132,9 @@ class TestCommand extends Command<int> {
   Future<int> run() async {
     final targetPath = path.normalize(Directory.current.absolute.path);
     final pubspec = File(path.join(targetPath, 'pubspec.yaml'));
+    final recursive = _argResults['recursive'] as bool;
 
-    if (!pubspec.existsSync()) {
+    if (!recursive && !pubspec.existsSync()) {
       _logger.err(
         '''
 Could not find a pubspec.yaml in $targetPath.
@@ -124,14 +144,13 @@ This command should be run from the root of your Flutter project.''',
     }
 
     final concurrency = _argResults['concurrency'] as String;
-    final recursive = _argResults['recursive'] as bool;
     final collectCoverage = _argResults['coverage'] as bool;
     final minCoverage = double.tryParse(
       _argResults['min-coverage'] as String? ?? '',
     );
     final excludeTags = _argResults['exclude-tags'] as String?;
     final tags = _argResults['tags'] as String?;
-    final isFlutterInstalled = await _flutterInstalled();
+    final isFlutterInstalled = await _flutterInstalled(logger: _logger);
     final excludeFromCoverage = _argResults['exclude-coverage'] as String?;
     final randomOrderingSeed =
         _argResults['test-randomize-ordering-seed'] as String?;
@@ -140,6 +159,8 @@ This command should be run from the root of your Flutter project.''',
         : randomOrderingSeed;
     final optimizePerformance = _argResults['optimization'] as bool;
     final updateGoldens = _argResults['update-goldens'] as bool;
+    final forceAnsi = _argResults['force-ansi'] as bool?;
+    final dartDefine = _argResults['dart-define'] as List<String>?;
 
     if (isFlutterInstalled) {
       try {
@@ -154,10 +175,13 @@ This command should be run from the root of your Flutter project.''',
           minCoverage: minCoverage,
           excludeFromCoverage: excludeFromCoverage,
           randomSeed: randomSeed,
+          forceAnsi: forceAnsi,
           arguments: [
             if (excludeTags != null) ...['-x', excludeTags],
             if (tags != null) ...['-t', tags],
             if (updateGoldens) '--update-goldens',
+            if (dartDefine != null)
+              for (final value in dartDefine) '--dart-define=$value',
             ...['-j', concurrency],
             '--no-pub',
             ..._argResults.rest,

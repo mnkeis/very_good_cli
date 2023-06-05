@@ -17,17 +17,23 @@ class _TestProcess {
 
 class _MockProcess extends Mock implements _TestProcess {}
 
-class _MockProcessResult extends Mock implements ProcessResult {}
+class _MockLogger extends Mock implements Logger {}
+
+class _MockProgress extends Mock implements Progress {}
 
 void main() {
   group('Dart', () {
-    late ProcessResult processResult;
+    final processResult = ProcessResult(42, ExitCode.success.code, '', '');
     late _TestProcess process;
+    late Logger logger;
+    late Progress progress;
 
     setUp(() {
-      processResult = _MockProcessResult();
+      logger = _MockLogger();
+      progress = _MockProgress();
+      when(() => logger.progress(any())).thenReturn(progress);
+
       process = _MockProcess();
-      when(() => processResult.exitCode).thenReturn(ExitCode.success.code);
       when(
         () => process.run(
           any(),
@@ -41,15 +47,31 @@ void main() {
     group('.installed', () {
       test('returns true when dart is installed', () {
         ProcessOverrides.runZoned(
-          () => expectLater(Dart.installed(), completion(isTrue)),
+          () => expectLater(Dart.installed(logger: logger), completion(isTrue)),
           runProcess: process.run,
         );
       });
 
       test('returns false when dart is not installed', () {
-        when(() => processResult.exitCode).thenReturn(ExitCode.software.code);
+        final processResult = ProcessResult(
+          42,
+          ExitCode.software.code,
+          '',
+          '',
+        );
+
+        when(
+          () => process.run(
+            any(),
+            any(),
+            runInShell: any(named: 'runInShell'),
+            workingDirectory: any(named: 'workingDirectory'),
+          ),
+        ).thenAnswer((_) async => processResult);
+
         ProcessOverrides.runZoned(
-          () => expectLater(Dart.installed(), completion(isFalse)),
+          () =>
+              expectLater(Dart.installed(logger: logger), completion(isFalse)),
           runProcess: process.run,
         );
       });
@@ -58,7 +80,7 @@ void main() {
     group('.applyFixes', () {
       test('completes normally', () {
         ProcessOverrides.runZoned(
-          () => expectLater(Dart.applyFixes(), completes),
+          () => expectLater(Dart.applyFixes(logger: logger), completes),
           runProcess: process.run,
         );
       });

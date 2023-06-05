@@ -29,12 +29,17 @@ class PackagesCommand extends Command<int> {
 class PackagesGetCommand extends Command<int> {
   /// {@macro packages_get_command}
   PackagesGetCommand({Logger? logger}) : _logger = logger ?? Logger() {
-    argParser.addFlag(
-      'recursive',
-      abbr: 'r',
-      help: 'Install dependencies recursively for all nested packages.',
-      negatable: false,
-    );
+    argParser
+      ..addFlag(
+        'recursive',
+        abbr: 'r',
+        help: 'Install dependencies recursively for all nested packages.',
+        negatable: false,
+      )
+      ..addMultiOption(
+        'ignore',
+        help: 'Exclude packages from installing dependencies.',
+      );
   }
 
   final Logger _logger;
@@ -58,14 +63,16 @@ class PackagesGetCommand extends Command<int> {
     }
 
     final recursive = _argResults['recursive'] as bool;
+    final ignore = (_argResults['ignore'] as List<String>).toSet();
     final target = _argResults.rest.length == 1 ? _argResults.rest[0] : '.';
     final targetPath = path.normalize(Directory(target).absolute.path);
-    final isFlutterInstalled = await Flutter.installed();
+    final isFlutterInstalled = await Flutter.installed(logger: _logger);
     if (isFlutterInstalled) {
       try {
         await Flutter.packagesGet(
           cwd: targetPath,
           recursive: recursive,
+          ignore: ignore,
           logger: _logger,
         );
       } on PubspecNotFound catch (_) {

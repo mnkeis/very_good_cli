@@ -1,5 +1,6 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:cli_completion/cli_completion.dart';
 import 'package:mason/mason.dart' hide packageVersion;
 import 'package:pub_updater/pub_updater.dart';
 import 'package:usage/usage_io.dart';
@@ -18,7 +19,7 @@ const packageName = 'very_good_cli';
 /// {@template very_good_command_runner}
 /// A [CommandRunner] for the Very Good CLI.
 /// {@endtemplate}
-class VeryGoodCommandRunner extends CommandRunner<int> {
+class VeryGoodCommandRunner extends CompletionCommandRunner<int> {
   /// {@macro very_good_command_runner}
   VeryGoodCommandRunner({
     Analytics? analytics,
@@ -28,7 +29,7 @@ class VeryGoodCommandRunner extends CommandRunner<int> {
         _analytics =
             analytics ?? AnalyticsIO(_gaTrackingId, _gaAppName, packageVersion),
         _pubUpdater = pubUpdater ?? PubUpdater(),
-        super('very_good', '🦄 A Very Good Command Line Interface') {
+        super('very_good', '🦄 A Very Good Command-Line Interface') {
     argParser
       ..addFlag(
         'version',
@@ -43,11 +44,15 @@ class VeryGoodCommandRunner extends CommandRunner<int> {
           'true': 'Enable anonymous usage statistics',
           'false': 'Disable anonymous usage statistics',
         },
+      )
+      ..addFlag(
+        'verbose',
+        help: 'Noisy logging, including all shell commands executed.',
       );
-    addCommand(CreateCommand(analytics: _analytics, logger: logger));
-    addCommand(PackagesCommand(logger: logger));
-    addCommand(TestCommand(logger: logger));
-    addCommand(UpdateCommand(logger: logger, pubUpdater: pubUpdater));
+    addCommand(CreateCommand(analytics: _analytics, logger: _logger));
+    addCommand(PackagesCommand(logger: _logger));
+    addCommand(TestCommand(logger: _logger));
+    addCommand(UpdateCommand(logger: _logger, pubUpdater: pubUpdater));
   }
 
   /// Standard timeout duration for the CLI.
@@ -56,6 +61,9 @@ class VeryGoodCommandRunner extends CommandRunner<int> {
   final Logger _logger;
   final Analytics _analytics;
   final PubUpdater _pubUpdater;
+
+  @override
+  void printUsage() => _logger.info(usage);
 
   @override
   Future<int> run(Iterable<String> args) async {
@@ -77,8 +85,12 @@ class VeryGoodCommandRunner extends CommandRunner<int> {
         _analytics.enabled =
             normalizedResponse == 'y' || normalizedResponse == 'yes';
       }
-      final _argResults = parse(args);
-      return await runCommand(_argResults) ?? ExitCode.success.code;
+      final argResults = parse(args);
+
+      if (argResults['verbose'] == true) {
+        _logger.level = Level.verbose;
+      }
+      return await runCommand(argResults) ?? ExitCode.success.code;
     } on FormatException catch (e, stackTrace) {
       _logger
         ..err(e.message)
@@ -97,6 +109,40 @@ class VeryGoodCommandRunner extends CommandRunner<int> {
 
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
+    if (topLevelResults.command?.name == 'completion') {
+      await super.runCommand(topLevelResults);
+      return ExitCode.success.code;
+    }
+
+    _logger
+      ..detail('Argument information:')
+      ..detail('  Top level options:');
+    for (final option in topLevelResults.options) {
+      if (topLevelResults.wasParsed(option)) {
+        _logger.detail('  - $option: ${topLevelResults[option]}');
+      }
+    }
+    if (topLevelResults.command != null) {
+      final commandResult = topLevelResults.command!;
+      _logger
+        ..detail('  Command: ${commandResult.name}')
+        ..detail('    Command options:');
+      for (final option in commandResult.options) {
+        if (commandResult.wasParsed(option)) {
+          _logger.detail('    - $option: ${commandResult[option]}');
+        }
+      }
+
+      if (commandResult.command != null) {
+        final subCommandResult = commandResult.command!;
+        _logger.detail('    Command sub command: ${subCommandResult.name}');
+      }
+    }
+
+    if (_analytics.enabled) {
+      _logger.detail('Running with analytics enabled.');
+    }
+
     int? exitCode = ExitCode.unavailable.code;
     if (topLevelResults['version'] == true) {
       _logger.info(packageVersion);
@@ -109,7 +155,9 @@ class VeryGoodCommandRunner extends CommandRunner<int> {
     } else {
       exitCode = await super.runCommand(topLevelResults);
     }
-    await _checkForUpdates();
+    if (topLevelResults.command?.name != UpdateCommand.commandName) {
+      await _checkForUpdates();
+    }
     return exitCode;
   }
 
