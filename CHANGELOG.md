@@ -1,13 +1,244 @@
+# 0.20.0
+
+- chore(deps): bump mason from 0.1.0-dev.51 to 0.1.0-dev.52 ([#942](https://github.com/VeryGoodOpenSource/very_good_cli/pull/942))
+- chore(deps): bump pana from 0.21.45 to 0.22.1 ([#962](https://github.com/VeryGoodOpenSource/very_good_cli/pull/962))
+- chore(deps): bump cli_completion from 0.4.0 to 0.5.0 ([#961](https://github.com/VeryGoodOpenSource/very_good_cli/pull/961))
+- chore(deps): bump very_good_test_runner from 0.1.2 to 0.2.0 ([#967](https://github.com/VeryGoodOpenSource/very_good_cli/pull/967))
+- chore: generate new SPDX licenses ([#979](https://github.com/VeryGoodOpenSource/very_good_cli/pull/979))
+- feat: bump template bundles ([#974](https://github.com/VeryGoodOpenSource/very_good_cli/pull/974))
+- [**Very Good Core**](https://github.com/VeryGoodOpenSource/very_good_templates/releases/tag/very_good_core-v0.6.0):
+  - chore: migrate very_good_core ([#1](https://github.com/VeryGoodOpenSource/very_good_templates/pull/1))
+  - feat!: update to Flutter 3.19.0 ([#24](https://github.com/VeryGoodOpenSource/very_good_templates/pull/24))
+  - chore: update bricks to Mason 0.1.0-dev.52 ([#28](https://github.com/VeryGoodOpenSource/very_good_templates/pull/28))
+  - fix: deprecated imperative apply of Flutter's Gradle plugins ([#70](https://github.com/VeryGoodOpenSource/very_good_templates/pull/70))
+- [**Very Good Dart CLI**](https://github.com/VeryGoodOpenSource/very_good_templates/releases/tag/very_good_dart_cli-v0.6.0):
+  - build(deps): bump pub_updater from 0.3.1 to 0.4.0 ([#116](https://github.com/VeryGoodOpenSource/very_good_dart_cli/pull/116))
+  - build(deps): bump cli_completion from 0.3.0 to 0.4.0 ([#115](https://github.com/VeryGoodOpenSource/very_good_dart_cli/pull/115))
+  - fix: sort directive ordering on post generation ([#122](https://github.com/VeryGoodOpenSource/very_good_dart_cli/pull/122))
+  - feat: hook performs dart pub get ([#123](https://github.com/VeryGoodOpenSource/very_good_dart_cli/pull/123))
+  - refactor: remove generator script ([#120](https://github.com/VeryGoodOpenSource/very_good_dart_cli/pull/120))
+  - chore: migrate very_good_dart_cli ([#3](https://github.com/VeryGoodOpenSource/very_good_templates/pull/3))
+  - feat!: update to Dart 3.3.0 ([#22](https://github.com/VeryGoodOpenSource/very_good_templates/pull/22))
+  - chore: update bricks to Mason 0.1.0-dev.52 ([#28](https://github.com/VeryGoodOpenSource/very_good_templates/pull/28))
+  - refactor: remove explicitly named libraries ([#77](https://github.com/VeryGoodOpenSource/very_good_templates/pull/77))
+- [**Very Good Dart Package**](https://github.com/VeryGoodOpenSource/very_good_templates/releases/tag/very_good_dart_package-v0.5.0):
+  - refactor: remove generator script ([#71](https://github.com/VeryGoodOpenSource/very_good_dart_package/pull/71))
+  - chore: migrate very_good_dart_package ([#4](https://github.com/VeryGoodOpenSource/very_good_templates/pull/4))
+  - feat!: update to Dart 3.3.0 ([#16](https://github.com/VeryGoodOpenSource/very_good_templates/pull/16))
+  - chore: update bricks to Mason 0.1.0-dev.52 ([#28](https://github.com/VeryGoodOpenSource/very_good_templates/pull/28))
+  - refactor: remove explicitly named libraries ([#77](https://github.com/VeryGoodOpenSource/very_good_templates/pull/77))
+- [**Very Good Docs Site**](https://github.com/VeryGoodOpenSource/very_good_templates/releases/tag/very_good_docs_site-v0.0.3):
+  - chore: migrate very_good_docs_site ([#6](https://github.com/VeryGoodOpenSource/very_good_templates/pull/6))
+  - chore: update bricks to Mason 0.1.0-dev.52 ([#28](https://github.com/VeryGoodOpenSource/very_good_templates/pull/28))
+- [**Very Good Flame Game**](https://github.com/VeryGoodOpenSource/very_good_templates/releases/tag/very_good_flame_game-v0.6.0):
+  - docs: fixed copy format and command ([#146](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/146))
+  - fix: resolve image caching issue on flame_game template ([#143](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/143))
+  - chore: migrate very_good_flame_game to very_good_templates ([#7](https://github.com/VeryGoodOpenSource/very_good_templates/pull/7))
+  - feat!: update to Flutter 3.19.0 ([#20](https://github.com/VeryGoodOpenSource/very_good_templates/pull/20))
+  - chore: update bricks to Mason 0.1.0-dev.52 ([#28](https://github.com/VeryGoodOpenSource/very_good_templates/commit/9dca472fb8c97a2fd08dbeea10eaf93d320ac550))
+  - fix: deprecated imperative apply of Flutter's Gradle plugins ([#78](https://github.com/VeryGoodOpenSource/very_good_templates/pull/78))
+- [**Very Good Flutter Package**](https://github.com/VeryGoodOpenSource/very_good_templates/releases/tag/very_good_flutter_package-v0.5.0):
+  - refactor: remove generator script ([#72](https://github.com/VeryGoodOpenSource/very_good_flutter_package/pull/72))
+  - chore: migrate very_good_flutter_package ([#5](https://github.com/VeryGoodOpenSource/very_good_templates/pull/5))
+  - feat!: update to Flutter 3.19.0 ([#18](https://github.com/VeryGoodOpenSource/very_good_templates/pull/18))
+  - chore: update bricks to Mason 0.1.0-dev.52 ([#28](https://github.com/VeryGoodOpenSource/very_good_templates/pull/28))
+  - refactor: remove explicitly named libraries ([#77](https://github.com/VeryGoodOpenSource/very_good_templates/pull/77))
+- [**Very Good Flutter Plugin**](https://github.com/VeryGoodOpenSource/very_good_templates/releases/tag/very_good_flutter_plugin-v0.7.0):
+  - test: add pre generation tests ([#138](https://github.com/VeryGoodOpenSource/very_good_flutter_plugin/pull/138))
+  - feat: allow optionally fixing template output ([#151](https://github.com/VeryGoodOpenSource/very_good_flutter_plugin/pull/151))
+  - fix: add support for platform testing ([#155](https://github.com/VeryGoodOpenSource/very_good_flutter_plugin/pull/155))
+  - feat: remove generator script ([#141](https://github.com/VeryGoodOpenSource/very_good_flutter_plugin/commit/78c1a6fb7619fa80d824e97065d00a87293bb7b5))
+  - chore: migrate very_good_flutter_plugin ([#36](https://github.com/VeryGoodOpenSource/very_good_templates/pull/41))
+  - chore: update repository url ([#41](https://github.com/VeryGoodOpenSource/very_good_templates/pull/41))
+  - refactor: template dartSdkVersionBounds ([#47](https://github.com/VeryGoodOpenSource/very_good_templates/pull/47))
+  - refactor: template flutterVersion ([#48](https://github.com/VeryGoodOpenSource/very_good_templates/pull/48))
+  - refactor: define versions in version.dart file ([#49](https://github.com/VeryGoodOpenSource/very_good_templates/pull/49))
+  - feat!: bump version to 3.19.0 ([#50](https://github.com/VeryGoodOpenSource/very_good_templates/pull/50))
+  - chore: tighten hook dependencies ([#51](https://github.com/VeryGoodOpenSource/very_good_templates/pull/51))
+  - chore: update brick to Mason 0.1.0-dev.52 ([#52](https://github.com/VeryGoodOpenSource/very_good_templates/pull/52))
+  - chore: tighten dependencies ([#53](https://github.com/VeryGoodOpenSource/very_good_templates/pull/53))
+- [**Very Good Wear App**](https://github.com/VeryGoodOpenSource/very_good_templates/releases/tag/very_good_wear_app-v0.4.0):
+  - test: add tests for pre generation hook ([#41](https://github.com/VeryGoodOpenSource/very_good_wear_app/pull/41))
+  - refactor: remove generator script ([#39](https://github.com/VeryGoodOpenSource/very_good_wear_app/pull/39))
+  - chore: migrate very_good_wear_app ([#2](https://github.com/VeryGoodOpenSource/very_good_templates/pull/2))
+  - feat!: update to Flutter 3.19.0 ([#27](https://github.com/VeryGoodOpenSource/very_good_templates/pull/27))
+  - chore: update bricks to Mason 0.1.0-dev.52 ([#28](https://github.com/VeryGoodOpenSource/very_good_templates/pull/28))
+  - fix: deprecated imperative apply of Flutter's Gradle plugins ([#79](https://github.com/VeryGoodOpenSource/very_good_templates/pull/79))
+
+# 0.19.1
+
+- chore(deps): bump pana from 0.21.43 to 0.21.44 ([#912](https://github.com/VeryGoodOpenSource/very_good_cli/pull/912))
+- chore(deps): bump test from 1.24.9 to 1.25.0 in /e2e ([#923](https://github.com/VeryGoodOpenSource/very_good_cli/pull/923))
+- chore(deps): bump test from 1.24.9 to 1.25.0 in /tool/spdx_license/hooks ([#924](https://github.com/VeryGoodOpenSource/very_good_cli/pull/924))
+- feat: Use relative path instead of absolute when running `test` ([#920](https://github.com/VeryGoodOpenSource/very_good_cli/pull/920))
+- chore(deps): bump test from 1.24.9 to 1.25.0 in /bricks/test_optimizer/hooks ([#926](https://github.com/VeryGoodOpenSource/very_good_cli/pull/926))
+- feat: Use relative path instead of absolute when running `packages get` ([#919](https://github.com/VeryGoodOpenSource/very_good_cli/pull/919))
+- feat: update create flutter_app output text for clarity ([#922](https://github.com/VeryGoodOpenSource/very_good_cli/pull/922))
+- fix: avoid failing with 'direct overridden' dependencies ([#930](https://github.com/VeryGoodOpenSource/very_good_cli/pull/930))
+- chore(deps): bump pana from 0.21.44 to 0.21.45 ([#929](https://github.com/VeryGoodOpenSource/very_good_cli/pull/929))
+- feat: support 'direct-overridden' dependency type when checking licenses ([#931](https://github.com/VeryGoodOpenSource/very_good_cli/pull/931))
+- docs: include 'direct-overridden' in check licenses ([#932](https://github.com/VeryGoodOpenSource/very_good_cli/pull/932))
+
+# 0.19.0
+
+- docs: update check licenses retrieval documentation ([#894](https://github.com/VeryGoodOpenSource/very_good_cli/pull/894))
+- docs: fix check_licenses.md pana link ([#897](https://github.com/VeryGoodOpenSource/very_good_cli/pull/897))
+- feat: bump template bundles ([#914](https://github.com/VeryGoodOpenSource/very_good_cli/pull/914))
+- **Very Good Core**:
+  - feat: change launchMode on Android to singleTask ([#297](https://github.com/VeryGoodOpenSource/very_good_core/pull/297))
+  - feat: add macOS platform support ([#299](https://github.com/VeryGoodOpenSource/very_good_core/pull/299))
+  - refactor: remove generator script ([#306](https://github.com/VeryGoodOpenSource/very_good_core/pull/306))
+  - docs: update semantic commit link ([#313](https://github.com/VeryGoodOpenSource/very_good_core/pull/313))
+  - fix: regenerate ios directory ([#310](https://github.com/VeryGoodOpenSource/very_good_core/pull/310))
+- **Very Good Docs Site**
+  - build(deps): bump @docusaurus/core in /src/very_good_docs_site ([#140](https://github.com/VeryGoodOpenSource/very_good_docs_site/pull/140))
+  - build(deps): bump @docusaurus/preset-classic in /src/very_good_docs_site ([#137](https://github.com/VeryGoodOpenSource/very_good_docs_site/pull/137))
+  - build(deps): bump actions/setup-node from 3 to 4 ([#145](https://github.com/VeryGoodOpenSource/very_good_docs_site/pull/145))
+  - feat: update to docusaurus 3.0 ([#152](https://github.com/VeryGoodOpenSource/very_good_docs_site/pull/152))
+- **Very Good Flame Game**
+  - build(deps): bump google_fonts in /src/very_good_flame_game ([#118](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/118))
+  - build(deps): bump actions/checkout from 4.0.0 to 4.1.0 ([#121](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/121))
+  - build(deps): bump actions/checkout from 4.1.0 to 4.1.1 ([#123](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/123))
+  - feat: add macOS platform support ([#125](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/125))
+  - fix: replace VeryGoodFlameGame with template ([#130](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/130))
+  - feat: update to flame 1.10 ([#129](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/129))
+  - build(deps): bump mockingjay from 0.4.0 to 0.5.0 in /src/very_good_flame_game ([#133](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/133))
+  - fix: regenerate ios platform dir ([#134](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/134))
+  - chore: minify assets [#139](https://github.com/VeryGoodOpenSource/very_good_flame_game/pull/139)
+
+# 0.18.0
+
+- docs: add missing path_setup_link ([#879](https://github.com/VeryGoodOpenSource/very_good_cli/pull/879))
+- test: setUp tempDirectory ([#880](https://github.com/VeryGoodOpenSource/very_good_cli/pull/880))
+- test: add e2e test for licenses check ([#882](https://github.com/VeryGoodOpenSource/very_good_cli/pull/882))
+- chore(deps-dev): bump @babel/eslint-parser in /site ([#885](https://github.com/VeryGoodOpenSource/very_good_cli/pull/885))
+- chore: generate new SPDX licenses ([#893](https://github.com/VeryGoodOpenSource/very_good_cli/pull/893))
+- feat!: detect licenses locally ([#883](https://github.com/VeryGoodOpenSource/very_good_cli/pull/883))
+- chore(deps): bump pana from 0.21.42 to 0.21.43 ([#895](https://github.com/VeryGoodOpenSource/very_good_cli/pull/895))
+
+# 0.17.1
+
+- docs: update supported licenses reference ([#863](https://github.com/VeryGoodOpenSource/very_good_cli/pull/863))
+- chore(deps-dev): bump eslint from 8.51.0 to 8.52.0 in /site ([#870](https://github.com/VeryGoodOpenSource/very_good_cli/pull/870))
+- chore(deps-dev): bump @tsconfig/docusaurus from 2.0.1 to 2.0.2 in /site ([#853](https://github.com/VeryGoodOpenSource/very_good_cli/pull/853))
+- chore(deps): bump actions/setup-node from 3 to 4 ([#871](https://github.com/VeryGoodOpenSource/very_good_cli/pull/871))
+- feat: ignore empty allowed or forbidden ([#868](https://github.com/VeryGoodOpenSource/very_good_cli/pull/868))
+- fix: avoid failure when terminal has no columns ([#869](https://github.com/VeryGoodOpenSource/very_good_cli/pull/869))
+- docs: add license checking documentation to commands' overview ([#867](https://github.com/VeryGoodOpenSource/very_good_cli/pull/867))
+
+# 0.17.0
+
+- chore: add release ready script ([#799](https://github.com/VeryGoodOpenSource/very_good_cli/pull/799))
+- fix: Prefer delegation implementation to allow comparator extension ([#742](https://github.com/VeryGoodOpenSource/very_good_cli/pull/742))
+- chore(deps): bump cli_completion from 0.3.0 to 0.4.0 ([#802](https://github.com/VeryGoodOpenSource/very_good_cli/pull/802))
+- docs: document specific version install ([#803](https://github.com/VeryGoodOpenSource/very_good_cli/pull/803))
+- chore(deps): bump pub_updater from 0.3.1 to 0.4.0 ([#801](https://github.com/VeryGoodOpenSource/very_good_cli/pull/801))
+- chore(deps): bump mason from 0.1.0-dev.50 to 0.1.0-dev.51 ([#805](https://github.com/VeryGoodOpenSource/very_good_cli/pull/805))
+- chore(deps): bump pub_updater from 0.3.1 to 0.4.0 in /e2e ([#806](https://github.com/VeryGoodOpenSource/very_good_cli/pull/806))
+- feat(bricks): include SPDX license brick ([#813](https://github.com/VeryGoodOpenSource/very_good_cli/pull/813))
+- fix: avoid failure when running local tests ([#820](https://github.com/VeryGoodOpenSource/very_good_cli/pull/820))
+- chore: remove extraneous lock file ([#821](https://github.com/VeryGoodOpenSource/very_good_cli/pull/821))
+- fixing the formatting in contributing markdown file ([#824](https://github.com/VeryGoodOpenSource/very_good_cli/pull/824))
+- chore(deps-dev): bump @docusaurus/module-type-aliases in /site ([#808](https://github.com/VeryGoodOpenSource/very_good_cli/pull/808))
+- chore(deps): bump @docusaurus/core from 2.4.1 to 2.4.3 in /site ([#816](https://github.com/VeryGoodOpenSource/very_good_cli/pull/816))
+- feat(spdx_license): include tryParse ([#817](https://github.com/VeryGoodOpenSource/very_good_cli/pull/817))
+- refactor: add visibleForTesting annotations to testing-related parameters ([#823](https://github.com/VeryGoodOpenSource/very_good_cli/pull/823))
+- test(spdx_license): include test and workflow ([#825](https://github.com/VeryGoodOpenSource/very_good_cli/pull/825))
+- fix: avoid disabling test optimization when passing extra args ([#826](https://github.com/VeryGoodOpenSource/very_good_cli/pull/826))
+- chore(deps): bump @docusaurus/preset-classic in /site ([#809](https://github.com/VeryGoodOpenSource/very_good_cli/pull/809))
+- refactor: move spdx_license brick under tool ([#828](https://github.com/VeryGoodOpenSource/very_good_cli/pull/828))
+- refactor: moved packages get command to its own file ([#829](https://github.com/VeryGoodOpenSource/very_good_cli/pull/829))
+- refactor: reduced new objects when parsing SpdxLicense ([#832](https://github.com/VeryGoodOpenSource/very_good_cli/pull/832))
+- chore(spdx_license): generate latest SPDX License ([#834](https://github.com/VeryGoodOpenSource/very_good_cli/pull/834))
+- ci: deffer reviewers to codeowners on bump_templates ([#836](https://github.com/VeryGoodOpenSource/very_good_cli/pull/836))
+- ci: include workflow to commit SPDX updates as bot ([#835](https://github.com/VeryGoodOpenSource/very_good_cli/pull/835))
+- chore: request code ownership ([#839](https://github.com/VeryGoodOpenSource/very_good_cli/pull/839))
+- chore: update SPDX licenses ([#837](https://github.com/VeryGoodOpenSource/very_good_cli/pull/837))
+- feat: defined PubLicense to get packages' licenses ([#818](https://github.com/VeryGoodOpenSource/very_good_cli/pull/818))
+- docs: documented SPDX build_hooks workflow ([#833](https://github.com/VeryGoodOpenSource/very_good_cli/pull/833))
+- feat: include hidden check licenses command ([#841](https://github.com/VeryGoodOpenSource/very_good_cli/pull/841))
+- docs: documented very_good test argument terminator ([#840](https://github.com/VeryGoodOpenSource/very_good_cli/pull/840))
+- refactor: make all mock class to private ([#838](https://github.com/VeryGoodOpenSource/very_good_cli/pull/838))
+- feat: inject PubLicense in VeryGoodCommandRunner ([#843](https://github.com/VeryGoodOpenSource/very_good_cli/pull/843))
+- chore(deps-dev): bump eslint from 8.49.0 to 8.51.0 in /site ([#844](https://github.com/VeryGoodOpenSource/very_good_cli/pull/844))
+- chore(deps): bump clsx from 1.2.1 to 2.0.0 in /site ([#830](https://github.com/VeryGoodOpenSource/very_good_cli/pull/830))
+- chore(deps-dev): bump @docusaurus/eslint-plugin in /site ([#831](https://github.com/VeryGoodOpenSource/very_good_cli/pull/831))
+- feat: allow `packages check licenses` to fetch licenses ([#842](https://github.com/VeryGoodOpenSource/very_good_cli/pull/842))
+- feat: add `--ignore-failures` to `check licenses` ([#846](https://github.com/VeryGoodOpenSource/very_good_cli/pull/846))
+- feat: add `--dependency-type` to `check licenses` ([#847](https://github.com/VeryGoodOpenSource/very_good_cli/pull/847))
+- feat: create SpdxLicense ([#851](https://github.com/VeryGoodOpenSource/very_good_cli/pull/851))
+- feat: add `--allowed` to `check licenses` ([#848](https://github.com/VeryGoodOpenSource/very_good_cli/pull/848))
+- feat: add `--forbidden` to `check licenses` ([#850](https://github.com/VeryGoodOpenSource/very_good_cli/pull/850))
+- feat: rename `ignore-failures` to `ignore-retrieval-failures` ([#858](https://github.com/VeryGoodOpenSource/very_good_cli/pull/858))
+- feat: include license count upon `check licenses` progress completion ([#856](https://github.com/VeryGoodOpenSource/very_good_cli/pull/856))
+- feat: update forbidden and allowed help message ([#857](https://github.com/VeryGoodOpenSource/very_good_cli/pull/857))
+- feat: add `skip-packages` to `check licenses` ([#854](https://github.com/VeryGoodOpenSource/very_good_cli/pull/854))
+- feat: modified collection progress message on `check license` ([#855](https://github.com/VeryGoodOpenSource/very_good_cli/pull/855))
+- docs: add path setup instructions ([#861](https://github.com/VeryGoodOpenSource/very_good_cli/pull/861))
+- feat: add thank you message ([#814](https://github.com/VeryGoodOpenSource/very_good_cli/pull/814))
+- docs: include license checking page ([#860](https://github.com/VeryGoodOpenSource/very_good_cli/pull/860))
+- feat: show `check licenses` command ([#862](https://github.com/VeryGoodOpenSource/very_good_cli/pull/862))
+
+# 0.16.0
+
+- fix!: remove analytics ([#756](https://github.com/VeryGoodOpenSource/very_good_cli/pull/756))
+- chore: update pubspec meta info ([#778](https://github.com/VeryGoodOpenSource/very_good_cli/pull/778))
+- fix: pass `org_name` to the plugin template ([#777](https://github.com/VeryGoodOpenSource/very_good_cli/pull/777))
+- chore: update dependencies and SDK constraints ([#782](https://github.com/VeryGoodOpenSource/very_good_cli/pull/782))
+- chore: update dependencies and SDK constraints on sub packages and fixtures ([#785](https://github.com/VeryGoodOpenSource/very_good_cli/pull/785))
+- docs: update readme headline ([#786](https://github.com/VeryGoodOpenSource/very_good_cli/pull/786))
+- chore: finish updating Very Good Analysis to 5.1.0 ([#792](https://github.com/VeryGoodOpenSource/very_good_cli/pull/792))
+- docs: update docs ([#798](https://github.com/VeryGoodOpenSource/very_good_cli/pull/798))
+- **Very Good Core**:
+  - feat!: bump min Dart SDK to 3.1.0
+  - feat!: update to Flutter 3.13.2
+  - fix: added RunnerTests iOS Schema
+  - feat: update to Material 3
+  - docs: update l10n README documentation
+  - docs: translation generation in README.md
+  - fix: very_good create flutter_app doesn't create .gradlew files
+  - feat: upgrade to `very_good_analysis ^5.1.0`
+- **Very Good Wear App**
+  - feat!: update to Flutter 3.13.2
+  - feat: update to Material 3
+  - fix: project doesn't build due to Kotlin gradle plugin incompatibility
+  - fix: very_good create flutter_app doesn't create .gradlew files
+  - feat: upgrade to `very_good_analysis ^5.1.0`
+- **Very Good Flame Game**
+  - feat!: update to Flame 1.8.2
+  - feat!: bump min Dart SDK to 3.1.0
+  - feat!: update to Flutter 3.13.2
+  - fix: added RunnerTests iOS Schema
+  - fix: very_good create flutter_app doesn't create .gradlew files
+  - feat: upgrade to `very_good_analysis ^5.1.0`
+  - fix: text style tests for `CounterComponent`
+- **Very Good Flutter Package**
+  - feat: upgrade to very_good_analysis ^5.1.0
+  - docs: update README.md install instructions
+- **Very Good Dart Package**
+  - feat: upgrade to very_good_analysis ^5.1.0
+  - docs: update README.md install instructions
+- **Very Good Dart CLI**
+  - feat: update very good analysis to v5 and fix patch
+  - feat: bump Dart SDK to >=3.0.0 <4.0.0
+- **Very Good Flutter Plugin**
+  - fix: flaky integrated tests
+  - feat: upgrade to `very_good_analysis ^5.1.0`
+  - feat: add fluttium test workflow
+  - docs: add docs for integration tests
+- **Very Good Docs Site**
+  - build(deps): various dependency updates
+
 # [0.15.0](https://github.com/VeryGoodOpenSource/very_good_cli/compare/v0.14.0...v0.15.0) (2023-05-23)
 
 ### Bug Fixes
 
-- do not  crash on test compilation error ([#739](https://github.com/VeryGoodOpenSource/very_good_cli/issues/739)) ([f19411c](https://github.com/VeryGoodOpenSource/very_good_cli/commit/f19411c5c49e374783b553debb485583d60b5310))
+- do not crash on test compilation error ([#739](https://github.com/VeryGoodOpenSource/very_good_cli/issues/739)) ([f19411c](https://github.com/VeryGoodOpenSource/very_good_cli/commit/f19411c5c49e374783b553debb485583d60b5310))
 
 ### Features
 
 - increase min sdk constraint to 3.0.0 ([#744](https://github.com/VeryGoodOpenSource/very_good_cli/issues/744)) ([464696c](https://github.com/VeryGoodOpenSource/very_good_cli/commit/464696cb1440d67959db85c312e5a5a7bcdd8351))
-- remove deprecated legacy  syntax ([#693](https://github.com/VeryGoodOpenSource/very_good_cli/issues/693)) ([af9b283](https://github.com/VeryGoodOpenSource/very_good_cli/commit/af9b2830b804e951568079f3ae9321737ff9aa02))
+- remove deprecated legacy syntax ([#693](https://github.com/VeryGoodOpenSource/very_good_cli/issues/693)) ([af9b283](https://github.com/VeryGoodOpenSource/very_good_cli/commit/af9b2830b804e951568079f3ae9321737ff9aa02))
 
 # [0.14.0](https://github.com/VeryGoodOpenSource/very_good_cli/compare/v0.13.1...v0.14.0) (2023-05-10)
 

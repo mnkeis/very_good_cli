@@ -7,17 +7,20 @@ import 'package:mason/mason.dart' hide packageVersion;
 import 'package:mocktail/mocktail.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:test/test.dart';
-import 'package:usage/usage_io.dart';
 import 'package:very_good_cli/src/command_runner.dart';
 import 'package:very_good_cli/src/version.dart';
 
-class MockAnalytics extends Mock implements Analytics {}
+class _MockLogger extends Mock implements Logger {}
 
-class MockLogger extends Mock implements Logger {}
+class _MockPubUpdater extends Mock implements PubUpdater {}
 
-class MockPubUpdater extends Mock implements PubUpdater {}
+class _MockProgress extends Mock implements Progress {}
 
-class MockProgress extends Mock implements Progress {}
+class _MockDirectory extends Mock implements Directory {}
+
+class _MockFile extends Mock implements File {}
+
+class _MockStdout extends Mock implements Stdout {}
 
 const expectedUsage = [
   '🦄 A Very Good Command-Line Interface\n'
@@ -27,11 +30,6 @@ const expectedUsage = [
       'Global options:\n'
       '-h, --help            Print this usage information.\n'
       '    --version         Print the current version.\n'
-      '    --analytics       Toggle anonymous usage statistics.\n'
-      '\n'
-      '          [false]     Disable anonymous usage statistics\n'
-      '          [true]      Enable anonymous usage statistics\n'
-      '\n'
       '''    --[no-]verbose    Noisy logging, including all shell commands executed.\n'''
       '\n'
       'Available commands:\n'
@@ -63,34 +61,28 @@ void main() {
   );
 
   group('VeryGoodCommandRunner', () {
-    late Analytics analytics;
     late PubUpdater pubUpdater;
     late Logger logger;
     late VeryGoodCommandRunner commandRunner;
 
     setUp(() {
-      analytics = MockAnalytics();
-      pubUpdater = MockPubUpdater();
+      pubUpdater = _MockPubUpdater();
 
-      when(() => analytics.firstRun).thenReturn(false);
-      when(() => analytics.enabled).thenReturn(false);
       when(
         () => pubUpdater.getLatestVersion(any()),
       ).thenAnswer((_) async => packageVersion);
 
-      logger = MockLogger();
+      logger = _MockLogger();
 
       commandRunner = VeryGoodCommandRunner(
-        analytics: analytics,
         logger: logger,
         pubUpdater: pubUpdater,
+        environment: {'CI': 'true'},
       );
     });
 
-    test('can be instantiated without an explicit analytics/logger instance',
-        () {
-      final commandRunner = VeryGoodCommandRunner();
-      expect(commandRunner, isNotNull);
+    test('can be instantiated without optional parameters', () {
+      expect(VeryGoodCommandRunner.new, returnsNormally);
     });
 
     group('run', () {
@@ -122,7 +114,7 @@ void main() {
               currentVersion: any(named: 'currentVersion'),
             ),
           ).thenAnswer((_) => Future.value(true));
-          final progress = MockProgress();
+          final progress = _MockProgress();
           final progressLogs = <String>[];
           when(() => progress.complete(any())).thenAnswer((_) {
             final message = _.positionalArguments.elementAt(0) as String?;
@@ -144,22 +136,6 @@ void main() {
         final result = await commandRunner.run(['--version']);
         expect(result, equals(ExitCode.success.code));
         verifyNever(() => logger.info(updatePrompt));
-      });
-
-      test('prompts for analytics collection on first run (y)', () async {
-        when(() => analytics.firstRun).thenReturn(true);
-        when(() => logger.prompt(any())).thenReturn('y');
-        final result = await commandRunner.run(['--version']);
-        expect(result, equals(ExitCode.success.code));
-        verify(() => analytics.enabled = true);
-      });
-
-      test('prompts for analytics collection on first run (n)', () async {
-        when(() => analytics.firstRun).thenReturn(true);
-        when(() => logger.prompt(any())).thenReturn('n');
-        final result = await commandRunner.run(['--version']);
-        expect(result, equals(ExitCode.success.code));
-        verify(() => analytics.enabled = false);
       });
 
       test('handles FormatException', () async {
@@ -210,6 +186,115 @@ void main() {
         expect(result, equals(ExitCode.success.code));
       });
 
+      group('_showThankYou', () {
+        late Directory cliCache;
+        late File versionFile;
+        late Stdout stdout;
+
+        setUp(() {
+          cliCache = _MockDirectory();
+          when(() => cliCache.path).thenReturn('/users/test');
+
+          versionFile = _MockFile();
+          when(() => versionFile.readAsStringSync()).thenReturn('0.0.0');
+
+          stdout = _MockStdout();
+          when(() => stdout.hasTerminal).thenReturn(true);
+          when(() => stdout.supportsAnsiEscapes).thenReturn(true);
+          when(() => stdout.terminalColumns).thenReturn(30);
+        });
+
+        test('shows message when version changed', () async {
+          commandRunner.environmentOverride = {
+            'HOME': '/users/test',
+          };
+
+          await IOOverrides.runZoned(
+            () async {
+              final result = await commandRunner.run([]);
+              expect(result, equals(ExitCode.success.code));
+
+              verifyInOrder([
+                () => logger.info('\nThank you for using Very Good '),
+                () => logger.info('Ventures open source '),
+                () => logger.info("tools!\nDon't forget to fill "),
+                () => logger.info('out this form to get '),
+                () => logger.info('information on future updates '),
+                () => logger.info('and releases here: '),
+                () => logger.info(
+                      any(
+                        that: contains(
+                          'https://verygood.ventures/open-source/cli/subscribe-latest-tool-updates',
+                        ),
+                      ),
+                    ),
+              ]);
+
+              verify(
+                () => versionFile.createSync(
+                  recursive: any(that: isTrue, named: 'recursive'),
+                ),
+              ).called(1);
+              verify(() => versionFile.readAsStringSync()).called(1);
+              verify(
+                () => versionFile
+                    .writeAsStringSync(any(that: equals(packageVersion))),
+              ).called(1);
+            },
+            createDirectory: (path) => cliCache,
+            createFile: (path) => versionFile,
+            stdout: () => stdout,
+          );
+        });
+
+        test('cache inside XDG directory', () async {
+          commandRunner.environmentOverride = {
+            'HOME': '/users/test',
+            'XDG_CONFIG_HOME': '/users/test/.xdg',
+          };
+
+          final xdgCache = _MockDirectory();
+          when(() => xdgCache.path).thenReturn('/users/test/.xdg');
+
+          await IOOverrides.runZoned(
+            () async {
+              final result = await commandRunner.run([]);
+              expect(result, equals(ExitCode.success.code));
+
+              verifyNever(() => cliCache.path);
+              verify(() => xdgCache.path).called(1);
+            },
+            createDirectory: (path) =>
+                path.contains('.xdg') ? xdgCache : cliCache,
+            createFile: (path) => versionFile,
+            stdout: () => stdout,
+          );
+        });
+
+        test('cache inside local APP_DATA on windows', () async {
+          commandRunner
+            ..environmentOverride = {'LOCALAPPDATA': '/C/Users/test'}
+            ..isWindowsOverride = true;
+
+          final windowsCache = _MockDirectory();
+          when(() => windowsCache.path).thenReturn('/C/Users/test');
+
+          await IOOverrides.runZoned(
+            () async {
+              final result = await commandRunner.run([]);
+              expect(result, equals(ExitCode.success.code));
+
+              verifyNever(() => cliCache.path);
+              verify(() => windowsCache.path).called(1);
+            },
+            createDirectory: (path) =>
+                path.startsWith('/C/') ? windowsCache : cliCache,
+            createFile: (path) => versionFile,
+            stdout: () => stdout,
+          );
+        });
+      });
+
       group('--help', () {
         test('outputs usage', () async {
           final result = await commandRunner.run(['--help']);
@@ -219,36 +304,6 @@ void main() {
           final resultAbbr = await commandRunner.run(['-h']);
           verify(() => logger.info(expectedUsage.join())).called(1);
           expect(resultAbbr, equals(ExitCode.success.code));
-        });
-      });
-
-      group('--analytics', () {
-        test('sets analytics.enabled to true', () async {
-          final result = await commandRunner.run(['--analytics', 'true']);
-          expect(result, equals(ExitCode.success.code));
-          verify(() => analytics.enabled = true);
-        });
-
-        test('sets analytics.enabled to false', () async {
-          final result = await commandRunner.run(['--analytics', 'false']);
-          expect(result, equals(ExitCode.success.code));
-          verify(() => analytics.enabled = false);
-        });
-
-        test('does not accept erroneous input', () async {
-          final result = await commandRunner.run(['--analytics', 'garbage']);
-          expect(result, equals(ExitCode.usage.code));
-          verifyNever(() => analytics.enabled);
-          verify(
-            () => logger.err(
-              '"garbage" is not an allowed value for option "analytics".',
-            ),
-          ).called(1);
-        });
-
-        test('exits with bad usage when missing value', () async {
-          final result = await commandRunner.run(['--analytics']);
-          expect(result, equals(ExitCode.usage.code));
         });
       });
 
@@ -269,15 +324,6 @@ void main() {
           verify(() => logger.detail('  Top level options:')).called(1);
           verify(() => logger.detail('  - verbose: true')).called(1);
           verifyNever(() => logger.detail('    Command options:'));
-        });
-
-        test('logs that analytics is enabled', () async {
-          when(() => analytics.enabled).thenReturn(true);
-          final result = await commandRunner.run(['--verbose']);
-          expect(result, equals(ExitCode.success.code));
-          verify(
-            () => logger.detail('Running with analytics enabled.'),
-          ).called(1);
         });
 
         test('enables verbose logging for sub commands', () async {

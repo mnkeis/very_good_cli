@@ -4,23 +4,22 @@ import 'package:mason/mason.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
-import 'package:usage/usage.dart';
 import 'package:very_good_cli/src/commands/commands.dart';
 import 'package:very_good_cli/src/commands/create/commands/flutter_app.dart';
 
 import '../../../../helpers/helpers.dart';
 
-class MockAnalytics extends Mock implements Analytics {}
+class _MockLogger extends Mock implements Logger {}
 
-class MockLogger extends Mock implements Logger {}
+class _MockProgress extends Mock implements Progress {}
 
-class MockMasonGenerator extends Mock implements MasonGenerator {}
+class _MockMasonGenerator extends Mock implements MasonGenerator {}
 
-class MockGeneratorHooks extends Mock implements GeneratorHooks {}
+class _MockGeneratorHooks extends Mock implements GeneratorHooks {}
 
-class FakeLogger extends Fake implements Logger {}
+class _FakeLogger extends Fake implements Logger {}
 
-class FakeDirectoryGeneratorTarget extends Fake
+class _FakeDirectoryGeneratorTarget extends Fake
     implements DirectoryGeneratorTarget {}
 
 final expectedUsage = [
@@ -52,30 +51,21 @@ environment:
 
 void main() {
   late List<String> progressLogs;
-  late Analytics analytics;
   late Logger logger;
 
   final generatedFiles = List.filled(10, const GeneratedFile.created(path: ''));
 
   setUpAll(() {
-    registerFallbackValue(FakeDirectoryGeneratorTarget());
-    registerFallbackValue(FakeLogger());
+    registerFallbackValue(_FakeDirectoryGeneratorTarget());
+    registerFallbackValue(_FakeLogger());
   });
 
   setUp(() {
     progressLogs = <String>[];
 
-    analytics = MockAnalytics();
-    when(
-      () => analytics.sendEvent(any(), any(), label: any(named: 'label')),
-    ).thenAnswer((_) async {});
-    when(
-      () => analytics.waitForLastPing(timeout: any(named: 'timeout')),
-    ).thenAnswer((_) async {});
+    logger = _MockLogger();
 
-    logger = MockLogger();
-
-    final progress = MockProgress();
+    final progress = _MockProgress();
     when(() => progress.complete(any())).thenAnswer((_) {
       final message = _.positionalArguments.elementAt(0) as String?;
       if (message != null) progressLogs.add(message);
@@ -87,7 +77,6 @@ void main() {
     test('with default options', () {
       final logger = Logger();
       final command = CreateFlutterApp(
-        analytics: analytics,
         logger: logger,
         generatorFromBundle: null,
         generatorFromBrick: null,
@@ -125,8 +114,8 @@ void main() {
       late MasonGenerator generator;
 
       setUp(() {
-        hooks = MockGeneratorHooks();
-        generator = MockMasonGenerator();
+        hooks = _MockGeneratorHooks();
+        generator = _MockMasonGenerator();
 
         when(() => generator.hooks).thenReturn(hooks);
         when(
@@ -163,33 +152,77 @@ void main() {
       });
 
       group('templates', () {
-        test('core', () async {
-          await testMultiTemplateCommand(
-            multiTemplatesCommand: CreateFlutterApp(
-              analytics: analytics,
+        group('core', () {
+          test('generates successfully', () async {
+            await testMultiTemplateCommand(
+              multiTemplatesCommand: CreateFlutterApp(
+                logger: logger,
+                generatorFromBundle: (_) async => throw Exception('oops'),
+                generatorFromBrick: (_) async => generator,
+              ),
               logger: logger,
-              generatorFromBundle: (_) async => throw Exception('oops'),
-              generatorFromBrick: (_) async => generator,
-            ),
-            logger: logger,
-            hooks: hooks,
-            generator: generator,
-            templateName: 'core',
-            mockArgs: {'application-id': 'xyz.app.my_app'},
-            expectedVars: {
-              'project_name': 'my_app',
-              'description': '',
-              'org_name': 'com.example.verygoodcore',
-              'application_id': 'xyz.app.my_app',
-            },
-            expectedLogSummary: 'Created a Very Good App! 🦄',
-          );
+              hooks: hooks,
+              generator: generator,
+              templateName: 'core',
+              mockArgs: {'application-id': 'xyz.app.my_app'},
+              expectedVars: {
+                'project_name': 'my_app',
+                'description': '',
+                'org_name': 'com.example.verygoodcore',
+                'application_id': 'xyz.app.my_app',
+              },
+              expectedLogSummary: 'Created a Very Good App! 🦄',
+            );
+          });
+
+          test('logs getting started information', () async {
+            final tempDirectory = Directory.systemTemp.createTempSync();
+            addTearDown(() => tempDirectory.deleteSync(recursive: true));
+
+            await testMultiTemplateCommand(
+              outputDirectoryOverride: tempDirectory,
+              multiTemplatesCommand: CreateFlutterApp(
+                logger: logger,
+                generatorFromBundle: (_) async => throw Exception('oops'),
+                generatorFromBrick: (_) async => generator,
+              ),
+              logger: logger,
+              hooks: hooks,
+              generator: generator,
+              templateName: 'core',
+              mockArgs: {'application-id': 'xyz.app.my_app'},
+              expectedVars: {
+                'project_name': 'my_app',
+                'description': '',
+                'org_name': 'com.example.verygoodcore',
+                'application_id': 'xyz.app.my_app',
+              },
+              expectedLogSummary: 'Created a Very Good App! 🦄',
+            );
+
+            final outputPath = path.join(tempDirectory.path, 'my_app');
+            final relativePath =
+                path.relative(outputPath, from: Directory.current.path);
+
+            final projectPath = relativePath;
+            final projectPathLink =
+                link(uri: Uri.parse(projectPath), message: projectPath);
+
+            final readmePath = path.join(relativePath, 'README.md');
+            final readmePathLink =
+                link(uri: Uri.parse(readmePath), message: readmePath);
+
+            final details = '''
+  • To get started refer to $readmePathLink
+  • Your project code is in $projectPathLink
+''';
+            verify(() => logger.info(details)).called(1);
+          });
         });
 
         test('wear', () async {
           await testMultiTemplateCommand(
             multiTemplatesCommand: CreateFlutterApp(
-              analytics: analytics,
               logger: logger,
               generatorFromBundle: (_) async => throw Exception('oops'),
               generatorFromBrick: (_) async => generator,

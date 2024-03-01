@@ -15,13 +15,27 @@ Very Good CLI is a Command-Line Interface that enables you to generate VGV-opini
 In order to use Very Good CLI you must have [Dart][dart_sdk] and [Flutter][flutter_sdk] installed on your machine.
 
 :::info
-Very Good CLI requires Dart `">=2.13.0 <3.0.0"`
+Very Good CLI requires Dart `">=3.1.0 <4.0.0"`
 :::
 
 ## Installing
 
 ```sh
 dart pub global activate very_good_cli
+```
+
+Or install a [specific version](https://pub.dev/packages/very_good_cli/versions) using:
+
+```sh
+dart pub global activate very_good_cli <version>
+```
+
+If you haven't already, you might need to [set up your path][path_setup_link].
+
+When that is not possible (eg: CI environments), run `very_good` commands via:
+
+```sh
+dart pub global run very_good_cli:very_good <command> <args>
 ```
 
 ## Commands
@@ -48,10 +62,6 @@ Available subcommands:
 Run "very_good help" to see global options.
 ```
 
-#### Syntax changes in 0.10.0
-
-⚠️ v0.10.0 changed the syntax of the `very_good create` command. Learn about the changes [here][new_syntax_link].
-
 ### `very_good packages get`
 
 Get packages in a Dart or Flutter project.
@@ -68,6 +78,24 @@ very_good packages get --recursive
 
 # Install packages recursively (shorthand)
 very_good packages get -r
+```
+
+### `very_good packages check licenses`
+
+Check packages' licenses in a Dart or Flutter project.
+
+```sh
+# Check licenses in the current directory
+very_good packages check licenses
+
+# Only allow the use of certain licenses
+very_good packages check licenses --allowed="MIT,BSD-3-Clause,BSD-2-Clause,Apache-2.0"
+
+# Deny the use of certain licenses
+very_good packages check licenses --forbidden="unknown"
+
+# Check licenses for certain dependencies types
+very_good packages check licenses --dependency-type="direct-main,transitive"
 ```
 
 ### `very_good test`
@@ -104,18 +132,16 @@ See the complete list of commands and usage information.
 Usage: very_good <command> [arguments]
 
 Global options:
--h, --help           Print this usage information.
-    --version        Print the current version.
-    --analytics      Toggle anonymous usage statistics.
-
-          [false]    Disable anonymous usage statistics
-          [true]     Enable anonymous usage statistics
+-h, --help            Print this usage information.
+    --version         Print the current version.
+    --[no-]verbose    Noisy logging, including all shell commands executed.
 
 Available commands:
-  create     very_good create <output directory>
+  create     very_good create <subcommand> <project-name> [arguments]
              Creates a new very good project in the specified directory.
   packages   Command for managing packages.
   test       Run tests in a Dart or Flutter project.
+  update     Update Very Good CLI.
 
 Run "very_good help <command>" for more information about a command.
 ```
@@ -124,3 +150,4 @@ Run "very_good help <command>" for more information about a command.
 [flutter_sdk]: https://docs.flutter.dev/get-started/install
 [very_good_cli]: https://raw.githubusercontent.com/VeryGoodOpenSource/very_good_cli/main/doc/assets/very_good_create.gif
 [new_syntax_link]: /docs/resources/syntax_changes_in_0_10_0
+[path_setup_link]: https://dart.dev/tools/pub/cmd/pub-global#running-a-script-from-your-path

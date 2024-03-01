@@ -1,8 +1,8 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require('prism-react-renderer/themes/vsLight');
-const darkCodeTheme = require('prism-react-renderer/themes/vsDark');
+const lightCodeTheme = require('prism-react-renderer').themes.vsLight;
+const darkCodeTheme = require('prism-react-renderer').themes.vsDark;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -55,19 +55,21 @@ const config = {
         },
         items: [
           {
-            label: 'Blog',
-            to: 'https://verygood.ventures/blog',
+            to: '/docs/overview',
+            label: 'Get Started',
+            position: 'right',
+            className: 'button nav-button',
+          },
+          {
+            label: 'VGV.DEV',
+            to: 'https://vgv.dev',
             position: 'right',
           },
           {
-            label: 'OSS',
-            to: 'https://github.com/VeryGoodOpenSource',
+            href: 'https://verygood.ventures',
             position: 'right',
-          },
-          {
-            label: 'VGV',
-            to: 'https://verygood.ventures',
-            position: 'right',
+            className: 'navbar-vgv-icon',
+            'aria-label': 'VGV website',
           },
           {
             href: 'https://github.com/verygoodopensource/very_good_cli',
@@ -78,56 +80,7 @@ const config = {
         ],
       },
       footer: {
-        links: [
-          {
-            title: 'Docs',
-            items: [
-              {
-                label: 'Overview',
-                to: '/docs/overview',
-              },
-              {
-                label: 'Templates',
-                to: '/docs/category/templates',
-              },
-              {
-                label: 'Commands',
-                to: '/docs/category/commands',
-              },
-              {
-                label: 'Resources',
-                to: '/docs/category/resources',
-              },
-            ],
-          },
-          {
-            title: 'Resources',
-            items: [
-              {
-                label: 'Tutorials',
-                href: '/docs/resources/tutorials',
-              },
-              {
-                label: 'Learn More',
-                href: '/docs/resources/learn_more',
-              },
-            ],
-          },
-          {
-            title: 'More',
-            items: [
-              {
-                label: 'Open an Issue',
-                href: 'https://github.com/verygoodopensource/very_good_cli/issues/new/choose',
-              },
-              {
-                label: 'GitHub',
-                href: 'https://github.com/verygoodopensource/very_good_cli',
-              },
-            ],
-          },
-        ],
-        copyright: `Copyright © ${new Date().getFullYear()} Very Good Ventures.<br/>Built with 💙 by <a target="_blank" rel="noopener" aria-label="Very Good Ventures" href="https://verygood.ventures">Very Good Ventures</a>.`,
+        copyright: `Built with 💙 by <a target="_blank" rel="noopener" aria-label="Very Good Ventures" href="https://verygood.ventures"><b>Very Good Ventures</b></a>.<br/>Copyright © ${new Date().getFullYear()} Very Good Ventures.`,
       },
       prism: {
         additionalLanguages: ['bash', 'dart', 'yaml'],

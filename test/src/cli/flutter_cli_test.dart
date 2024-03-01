@@ -194,6 +194,8 @@ void main() {
           File(p.join(ignoredDirectory.path, 'pubspec.yaml'))
               .writeAsStringSync(_pubspec);
 
+          final relativePathPrefix = '.${p.context.separator}';
+
           ProcessOverrides.runZoned(
             () => expectLater(
               Flutter.packagesGet(
@@ -209,23 +211,29 @@ void main() {
             ),
             runProcess: process.run,
           ).whenComplete(() {
+            final nestedRelativePath =
+                p.relative(nestedDirectory.path, from: tempDirectory.path);
+
             verify(() {
               logger.progress(
                 any(
                   that: contains(
-                    'Running "flutter packages get" in '
-                    '${nestedDirectory.path}',
+                    '''Running "flutter packages get" in $relativePathPrefix$nestedRelativePath''',
                   ),
                 ),
               );
             }).called(1);
 
             verifyNever(() {
+              final ignoredRelativePath = p.relative(
+                ignoredDirectory.path,
+                from: tempDirectory.path,
+              );
+
               logger.progress(
                 any(
                   that: contains(
-                    'Running "flutter packages get" in '
-                    '${ignoredDirectory.path}',
+                    '''Running "flutter packages get" in $relativePathPrefix$ignoredRelativePath''',
                   ),
                 ),
               );
@@ -394,8 +402,8 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
-            'No test folder found in ${tempDirectory.absolute.path}\n',
+            'Running "flutter test" in . ...\n',
+            'No test folder found in .\n',
           ]),
         );
       });
@@ -431,7 +439,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             '\x1B[2K\r00:00 ...',
             contains('All tests passed!'),
           ]),
@@ -462,7 +470,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             '\x1B[2K\r00:02 +1: CounterCubit initial state is 0',
             '''\x1B[2K\r00:02 +2: CounterCubit emits [1] when increment is called''',
             '''\x1B[2K\r00:02 +3: CounterCubit emits [-1] when decrement is called''',
@@ -471,7 +479,7 @@ void main() {
             '\x1B[2K\r00:03 +6: CounterView renders current count',
             '''\x1B[2K\r00:03 +7: CounterView calls increment when increment button is tapped''',
             '''\x1B[2K\r00:03 +8: CounterView calls decrement when decrement button is tapped''',
-            '\x1B[2K\r00:04 +8: All tests passed!\n'
+            '\x1B[2K\r00:04 +8: All tests passed!\n',
           ]),
         );
         expect(stderrLogs, isEmpty);
@@ -504,7 +512,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             '''\x1B[2K\r\x1B[90m00:02\x1B[0m \x1B[92m+1\x1B[0m: CounterCubit initial state is 0''',
             '''\x1B[2K\r\x1B[90m00:02\x1B[0m \x1B[92m+2\x1B[0m: CounterCubit emits [1] when increment is called''',
             '''\x1B[2K\r\x1B[90m00:02\x1B[0m \x1B[92m+3\x1B[0m: CounterCubit emits [-1] when decrement is called''',
@@ -513,7 +521,7 @@ void main() {
             '''\x1B[2K\r\x1B[90m00:03\x1B[0m \x1B[92m+6\x1B[0m: CounterView renders current count''',
             '''\x1B[2K\r\x1B[90m00:03\x1B[0m \x1B[92m+7\x1B[0m: ...rView calls increment when increment button is tapped''',
             '''\x1B[2K\r\x1B[90m00:03\x1B[0m \x1B[92m+8\x1B[0m: ...rView calls decrement when decrement button is tapped''',
-            '''\x1B[2K\r\x1B[90m\x1B[90m00:04\x1B[0m\x1B[0m \x1B[92m+8\x1B[0m: \x1B[92mAll tests passed!\x1B[0m\n'''
+            '''\x1B[2K\r\x1B[90m\x1B[90m00:04\x1B[0m\x1B[0m \x1B[92m+8\x1B[0m: \x1B[92mAll tests passed!\x1B[0m\n''',
           ]),
         );
         expect(stderrLogs, isEmpty);
@@ -544,7 +552,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             '\x1B[2K\r00:11 -1: CounterCubit initial state is 0',
             '''\x1B[2K\r00:11 +1 -1: CounterCubit emits [1] when increment is called''',
             '''\x1B[2K\r00:11 +2 -1: CounterCubit emits [-1] when decrement is called''',
@@ -599,7 +607,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             '\x1B[2K\rSkip: currently failing (see issue 1234)\n',
             '\x1B[2K\r(suite) ${tempDirectory.path}/test/counter/view/other_test.dart (SKIPPED)\n',
             '\x1B[2K\r00:00 ~1: (suite)',
@@ -615,7 +623,7 @@ void main() {
             '''\x1B[2K\r00:04 +6 -1 ~2: CounterView calls increment when increment button is tapped''',
             '''\x1B[2K\r00:04 +7 -1 ~2: CounterView calls decrement when decrement button is tapped''',
             '''\x1B[2K\r00:05 +8 -1 ~2: ...tiline test name that should be well processed by very_good test''',
-            '\x1B[2K\r00:05 +8 -1 ~2: Some tests failed.\n'
+            '\x1B[2K\r00:05 +8 -1 ~2: Some tests failed.\n',
           ]),
         );
         expect(
@@ -668,7 +676,14 @@ void main() {
           ),
           completion(equals([ExitCode.unavailable.code])),
         );
-        expect(stderrLogs, equals(['\x1B[2K\r$exception', '\x1B[2K\r']));
+        expect(
+          stderrLogs.first,
+          equals('\x1B[2K\r$exception'),
+        );
+        expect(
+          stderrLogs[1],
+          startsWith('\x1B[2K\r'),
+        );
       });
 
       test('runs tests (error w/stackTrace)', () async {
@@ -770,7 +785,7 @@ void main() {
           stdoutLogs,
           containsAllInOrder([
             '\x1B[2K\r00:00 -1: loading test/.test_optimizer.dart',
-            '\x1B[2K\r00:00 -1: Some tests failed.\n'
+            '\x1B[2K\r00:00 -1: Some tests failed.\n',
           ]),
         );
         expect(
@@ -839,7 +854,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             contains('All tests passed!'),
           ]),
         );
@@ -875,7 +890,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             'Shuffling test order with --test-randomize-ordering-seed=$seed\n',
             contains('All tests passed!'),
           ]),
@@ -921,7 +936,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             contains('All tests passed!'),
           ]),
         );
@@ -962,7 +977,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             contains('All tests passed!'),
           ]),
         );
@@ -1009,7 +1024,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             contains('All tests passed!'),
           ]),
         );
@@ -1054,7 +1069,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             contains('All tests passed!'),
           ]),
         );
@@ -1107,13 +1122,18 @@ void main() {
             completion(equals([ExitCode.success.code, ExitCode.success.code])),
           );
 
+          final nestedRelativePath = p.relative(
+            tempNestedDirectory.path,
+            from: tempDirectory.path,
+          );
+          final relativePathPrefix = '.${p.context.separator}';
+
           expect(
             stdoutLogs,
             unorderedEquals([
-              'Running "flutter test" in '
-                  '${p.dirname(tempNestedDirectory.path)}...\n',
+              '''Running "flutter test" in $relativePathPrefix$nestedRelativePath ...\n''',
               contains('All tests passed!'),
-              'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+              'Running "flutter test" in . ...\n',
               contains('All tests passed!'),
             ]),
           );
@@ -1172,14 +1192,19 @@ void main() {
             ),
           );
 
+          final nestedRelativePath = p.relative(
+            tempNestedDirectory.path,
+            from: tempDirectory.path,
+          );
+          final relativePathPrefix = '.${p.context.separator}';
+
           expect(
             stdoutLogs,
             unorderedEquals([
               'Running "flutter test" in '
-                  '${p.dirname(tempDirectory.path)}...\n',
+                  '. ...\n',
               contains('All tests passed!'),
-              'Running "flutter test" in '
-                  '${p.dirname(tempNestedDirectory.path)}...\n',
+              '''Running "flutter test" in $relativePathPrefix$nestedRelativePath ...\n''',
               contains('All tests passed!'),
             ]),
           );
@@ -1193,11 +1218,11 @@ void main() {
         addTearDown(() => tempDirectory.deleteSync(recursive: true));
 
         final originalVars = <String, dynamic>{
-          'package-root': tempDirectory.path
+          'package-root': tempDirectory.path,
         };
         final updatedVars = <String, dynamic>{
           'package-root': tempDirectory.path,
-          'foo': 'bar'
+          'foo': 'bar',
         };
         File(p.join(tempDirectory.path, 'pubspec.yaml')).createSync();
         Directory(p.join(tempDirectory.path, 'test')).createSync();
@@ -1235,7 +1260,7 @@ void main() {
         expect(
           stdoutLogs,
           equals([
-            'Running "flutter test" in ${p.dirname(tempDirectory.path)}...\n',
+            'Running "flutter test" in . ...\n',
             contains('All tests passed!'),
           ]),
         );

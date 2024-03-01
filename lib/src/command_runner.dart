@@ -2,16 +2,13 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
 import 'package:mason/mason.dart' hide packageVersion;
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:pub_updater/pub_updater.dart';
-import 'package:usage/usage_io.dart';
+import 'package:universal_io/io.dart';
 import 'package:very_good_cli/src/commands/commands.dart';
+import 'package:very_good_cli/src/logger_extension.dart';
 import 'package:very_good_cli/src/version.dart';
-
-// The Google Analytics tracking ID.
-const _gaTrackingId = 'UA-117465969-4';
-
-// The Google Analytics Application Name.
-const _gaAppName = 'very-good-cli';
 
 /// The package name.
 const packageName = 'very_good_cli';
@@ -22,13 +19,12 @@ const packageName = 'very_good_cli';
 class VeryGoodCommandRunner extends CompletionCommandRunner<int> {
   /// {@macro very_good_command_runner}
   VeryGoodCommandRunner({
-    Analytics? analytics,
     Logger? logger,
     PubUpdater? pubUpdater,
+    Map<String, String>? environment,
   })  : _logger = logger ?? Logger(),
-        _analytics =
-            analytics ?? AnalyticsIO(_gaTrackingId, _gaAppName, packageVersion),
         _pubUpdater = pubUpdater ?? PubUpdater(),
+        _environment = environment ?? Platform.environment,
         super('very_good', '🦄 A Very Good Command-Line Interface') {
     argParser
       ..addFlag(
@@ -36,20 +32,11 @@ class VeryGoodCommandRunner extends CompletionCommandRunner<int> {
         negatable: false,
         help: 'Print the current version.',
       )
-      ..addOption(
-        'analytics',
-        help: 'Toggle anonymous usage statistics.',
-        allowed: ['true', 'false'],
-        allowedHelp: {
-          'true': 'Enable anonymous usage statistics',
-          'false': 'Disable anonymous usage statistics',
-        },
-      )
       ..addFlag(
         'verbose',
         help: 'Noisy logging, including all shell commands executed.',
       );
-    addCommand(CreateCommand(analytics: _analytics, logger: _logger));
+    addCommand(CreateCommand(logger: _logger));
     addCommand(PackagesCommand(logger: _logger));
     addCommand(TestCommand(logger: _logger));
     addCommand(UpdateCommand(logger: _logger, pubUpdater: pubUpdater));
@@ -59,8 +46,17 @@ class VeryGoodCommandRunner extends CompletionCommandRunner<int> {
   static const timeout = Duration(milliseconds: 500);
 
   final Logger _logger;
-  final Analytics _analytics;
   final PubUpdater _pubUpdater;
+
+  /// Map of environments information.
+  Map<String, String> get environment => environmentOverride ?? _environment;
+  final Map<String, String> _environment;
+
+  /// Boolean for checking if windows, which can be overridden for
+  /// testing purposes.
+  @visibleForTesting
+  bool? isWindowsOverride;
+  bool get _isWindows => isWindowsOverride ?? Platform.isWindows;
 
   @override
   void printUsage() => _logger.info(usage);
@@ -68,23 +64,6 @@ class VeryGoodCommandRunner extends CompletionCommandRunner<int> {
   @override
   Future<int> run(Iterable<String> args) async {
     try {
-      if (_analytics.firstRun) {
-        final response = _logger.prompt(
-          lightGray.wrap(
-            '''
-+---------------------------------------------------+
-|           Welcome to the Very Good CLI!           |
-+---------------------------------------------------+
-| We would like to collect anonymous                |
-| usage statistics in order to improve the tool.    |
-| Would you like to opt-into help us improve? [y/n] |
-+---------------------------------------------------+\n''',
-          ),
-        );
-        final normalizedResponse = response.toLowerCase().trim();
-        _analytics.enabled =
-            normalizedResponse == 'y' || normalizedResponse == 'yes';
-      }
       final argResults = parse(args);
 
       if (argResults['verbose'] == true) {
@@ -139,18 +118,9 @@ class VeryGoodCommandRunner extends CompletionCommandRunner<int> {
       }
     }
 
-    if (_analytics.enabled) {
-      _logger.detail('Running with analytics enabled.');
-    }
-
     int? exitCode = ExitCode.unavailable.code;
     if (topLevelResults['version'] == true) {
       _logger.info(packageVersion);
-      exitCode = ExitCode.success.code;
-    } else if (topLevelResults['analytics'] != null) {
-      final optIn = topLevelResults['analytics'] == 'true';
-      _analytics.enabled = optIn;
-      _logger.info('analytics ${_analytics.enabled ? 'enabled' : 'disabled'}.');
       exitCode = ExitCode.success.code;
     } else {
       exitCode = await super.runCommand(topLevelResults);
@@ -158,6 +128,7 @@ class VeryGoodCommandRunner extends CompletionCommandRunner<int> {
     if (topLevelResults.command?.name != UpdateCommand.commandName) {
       await _checkForUpdates();
     }
+    _showThankYou();
     return exitCode;
   }
 
@@ -176,5 +147,40 @@ Run ${lightCyan.wrap('very_good update')} to update''',
           );
       }
     } catch (_) {}
+  }
+
+  void _showThankYou() {
+    if (environment.containsKey('CI')) return;
+
+    final versionFile = File(
+      path.join(_configDir.path, 'version'),
+    )..createSync(recursive: true);
+
+    if (versionFile.readAsStringSync() == packageVersion) return;
+    versionFile.writeAsStringSync(packageVersion);
+
+    _logger.wrap(
+      lightMagenta.wrap('''
+
+Thank you for using Very Good Ventures open source tools!
+Don't forget to fill out this form to get information on future updates and releases here: ${lightBlue.wrap(link(uri: Uri.parse('https://verygood.ventures/open-source/cli/subscribe-latest-tool-updates')))}'''),
+      print: _logger.info,
+    );
+  }
+
+  Directory get _configDir {
+    if (_isWindows) {
+      // Use localappdata on windows
+      final localAppData = environment['LOCALAPPDATA']!;
+      return Directory(path.join(localAppData, 'VeryGoodCLI'));
+    } else {
+      // Try using XDG config folder
+      var dirPath = environment['XDG_CONFIG_HOME'];
+      // Fallback to $HOME if not following XDG specification
+      if (dirPath == null || dirPath.isEmpty) {
+        dirPath = environment['HOME'];
+      }
+      return Directory(path.join(dirPath!, '.very_good_cli'));
+    }
   }
 }

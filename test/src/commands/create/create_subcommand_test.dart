@@ -5,35 +5,31 @@ import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
-import 'package:usage/usage.dart';
 import 'package:very_good_cli/src/commands/create/commands/create_subcommand.dart';
 import 'package:very_good_cli/src/commands/create/templates/template.dart';
 
-class MockTemplate extends Mock implements Template {}
+class _MockTemplate extends Mock implements Template {}
 
-class MockAnalytics extends Mock implements Analytics {}
+class _MockLogger extends Mock implements Logger {}
 
-class MockLogger extends Mock implements Logger {}
+class _MockProgress extends Mock implements Progress {}
 
-class MockProgress extends Mock implements Progress {}
+class _MockMasonGenerator extends Mock implements MasonGenerator {}
 
-class MockMasonGenerator extends Mock implements MasonGenerator {}
+class _MockBundle extends Mock implements MasonBundle {}
 
-class MockBundle extends Mock implements MasonBundle {}
+class _MockGeneratorHooks extends Mock implements GeneratorHooks {}
 
-class MockGeneratorHooks extends Mock implements GeneratorHooks {}
+class _FakeLogger extends Fake implements Logger {}
 
-class FakeLogger extends Fake implements Logger {}
-
-class FakeDirectoryGeneratorTarget extends Fake
+class _FakeDirectoryGeneratorTarget extends Fake
     implements DirectoryGeneratorTarget {}
 
-class FakeDirectory extends Fake implements Directory {}
+class _FakeDirectory extends Fake implements Directory {}
 
 class _TestCreateSubCommand extends CreateSubCommand {
   _TestCreateSubCommand({
     required this.template,
-    required super.analytics,
     required super.logger,
     required super.generatorFromBundle,
     required super.generatorFromBrick,
@@ -53,7 +49,6 @@ class _TestCreateSubCommandWithOrgName extends _TestCreateSubCommand
     with OrgName {
   _TestCreateSubCommandWithOrgName({
     required super.template,
-    required super.analytics,
     required super.logger,
     required super.generatorFromBundle,
     required super.generatorFromBrick,
@@ -64,7 +59,6 @@ class _TestCreateSubCommandWithPublishable extends _TestCreateSubCommand
     with Publishable {
   _TestCreateSubCommandWithPublishable({
     required super.template,
-    required super.analytics,
     required super.logger,
     required super.generatorFromBundle,
     required super.generatorFromBrick,
@@ -75,7 +69,6 @@ class _TestCreateSubCommandMultiTemplate extends CreateSubCommand
     with MultiTemplates {
   _TestCreateSubCommandMultiTemplate({
     required this.templates,
-    required super.analytics,
     required super.logger,
     required super.generatorFromBundle,
     required super.generatorFromBrick,
@@ -105,30 +98,21 @@ void main() {
   final generatedFiles = List.filled(10, const GeneratedFile.created(path: ''));
 
   late List<String> progressLogs;
-  late Analytics analytics;
   late Logger logger;
   late Progress progress;
 
   setUpAll(() {
-    registerFallbackValue(FakeDirectoryGeneratorTarget());
-    registerFallbackValue(FakeLogger());
-    registerFallbackValue(FakeDirectory());
+    registerFallbackValue(_FakeDirectoryGeneratorTarget());
+    registerFallbackValue(_FakeLogger());
+    registerFallbackValue(_FakeDirectory());
   });
 
   setUp(() {
     progressLogs = <String>[];
 
-    analytics = MockAnalytics();
-    when(
-      () => analytics.sendEvent(any(), any(), label: any(named: 'label')),
-    ).thenAnswer((_) async {});
-    when(
-      () => analytics.waitForLastPing(timeout: any(named: 'timeout')),
-    ).thenAnswer((_) async {});
+    logger = _MockLogger();
 
-    logger = MockLogger();
-
-    progress = MockProgress();
+    progress = _MockProgress();
     when(() => progress.complete(any())).thenAnswer((_) {
       final message = _.positionalArguments.elementAt(0) as String?;
       if (message != null) progressLogs.add(message);
@@ -147,29 +131,25 @@ Usage: very_good create create_subcommand <project-name> [arguments]
 Run "runner help" to see global options.''';
 
     late Template template;
-    late MockBundle bundle;
+    late _MockBundle bundle;
 
     setUp(() {
-      bundle = MockBundle();
+      bundle = _MockBundle();
       when(() => bundle.name).thenReturn('test');
       when(() => bundle.description).thenReturn('Test bundle');
       when(() => bundle.version).thenReturn('<bundleversion>');
-      template = MockTemplate();
+      template = _MockTemplate();
       when(() => template.name).thenReturn('test');
       when(() => template.bundle).thenReturn(bundle);
       when(() => template.onGenerateComplete(any(), any())).thenAnswer(
         (_) async {},
       );
-      when(
-        () => analytics.sendEvent(any(), any(), label: any(named: 'label')),
-      ).thenAnswer((_) async {});
     });
 
     group('can be instantiated', () {
       test('with default options', () {
         final command = _TestCreateSubCommand(
           template: template,
-          analytics: analytics,
           logger: logger,
           generatorFromBundle: null,
           generatorFromBrick: null,
@@ -204,8 +184,8 @@ Run "runner help" to see global options.''';
       late _TestCommandRunner runner;
 
       setUp(() {
-        hooks = MockGeneratorHooks();
-        generator = MockMasonGenerator();
+        hooks = _MockGeneratorHooks();
+        generator = _MockMasonGenerator();
 
         when(() => generator.hooks).thenReturn(hooks);
         when(
@@ -247,7 +227,6 @@ Run "runner help" to see global options.''';
 
         final command = _TestCreateSubCommand(
           template: template,
-          analytics: analytics,
           logger: logger,
           generatorFromBundle: (_) async => throw Exception('oops'),
           generatorFromBrick: (_) async => generator,
@@ -264,7 +243,7 @@ Run "runner help" to see global options.''';
             '--description',
             'test_desc',
             '--output-directory',
-            'test_dir'
+            'test_dir',
           ]);
 
           expect(result, equals(ExitCode.success.code));
@@ -309,14 +288,6 @@ Run "runner help" to see global options.''';
                   'test_dir/test_project',
                 ),
               ),
-            ),
-          ).called(1);
-
-          verify(
-            () => analytics.sendEvent(
-              'create create_subcommand',
-              'generator_id',
-              label: 'generator description',
             ),
           ).called(1);
         });
@@ -455,7 +426,6 @@ See https://dart.dev/tools/pub/pubspec#name for more information.''',
         test('uses remote brick when possible', () async {
           final command = _TestCreateSubCommand(
             template: template,
-            analytics: analytics,
             logger: logger,
             generatorFromBundle: (_) async {
               throw UnsupportedError('this test should not reach this point');
@@ -495,7 +465,6 @@ See https://dart.dev/tools/pub/pubspec#name for more information.''',
           () async {
             final command = _TestCreateSubCommand(
               template: template,
-              analytics: analytics,
               logger: logger,
               generatorFromBundle: (_) async => generator,
               generatorFromBrick: (_) async {
@@ -547,29 +516,25 @@ Usage: very_good create create_subcommand <project-name> [arguments]
 Run "runner help" to see global options.''';
 
     late Template template;
-    late MockBundle bundle;
+    late _MockBundle bundle;
 
     setUp(() {
-      bundle = MockBundle();
+      bundle = _MockBundle();
       when(() => bundle.name).thenReturn('test');
       when(() => bundle.description).thenReturn('Test bundle');
       when(() => bundle.version).thenReturn('<bundleversion>');
-      template = MockTemplate();
+      template = _MockTemplate();
       when(() => template.name).thenReturn('test');
       when(() => template.bundle).thenReturn(bundle);
       when(() => template.onGenerateComplete(any(), any())).thenAnswer(
         (_) async {},
       );
-      when(
-        () => analytics.sendEvent(any(), any(), label: any(named: 'label')),
-      ).thenAnswer((_) async {});
     });
 
     group('can be instantiated', () {
       test('with default options', () {
         final command = _TestCreateSubCommandWithOrgName(
           template: template,
-          analytics: analytics,
           logger: logger,
           generatorFromBundle: null,
           generatorFromBrick: null,
@@ -601,8 +566,8 @@ Run "runner help" to see global options.''';
       late _TestCommandRunner runner;
 
       setUp(() {
-        hooks = MockGeneratorHooks();
-        generator = MockMasonGenerator();
+        hooks = _MockGeneratorHooks();
+        generator = _MockMasonGenerator();
 
         when(() => generator.hooks).thenReturn(hooks);
         when(
@@ -644,7 +609,6 @@ Run "runner help" to see global options.''';
 
         final command = _TestCreateSubCommandWithOrgName(
           template: template,
-          analytics: analytics,
           logger: logger,
           generatorFromBundle: (_) async => throw Exception('oops'),
           generatorFromBrick: (_) async => generator,
@@ -890,23 +854,16 @@ Usage: very_good create create_subcommand <project-name> [arguments]
 
 Run "runner help" to see global options.''';
 
-    late MockBundle bundle;
+    late _MockBundle bundle;
     late List<Template> templates;
 
     setUp(() {
-      bundle = MockBundle();
+      bundle = _MockBundle();
       when(() => bundle.name).thenReturn('test');
       when(() => bundle.description).thenReturn('Test bundle');
       when(() => bundle.version).thenReturn('<bundleversion>');
-      when(
-        () => analytics.sendEvent(
-          any(),
-          any(),
-          label: any(named: 'label'),
-        ),
-      ).thenAnswer((_) async {});
 
-      final template1 = MockTemplate();
+      final template1 = _MockTemplate();
       when(() => template1.name).thenReturn('template1');
       when(() => template1.help).thenReturn('template1 help');
       when(() => template1.bundle).thenReturn(bundle);
@@ -914,7 +871,7 @@ Run "runner help" to see global options.''';
         (_) async {},
       );
 
-      final template2 = MockTemplate();
+      final template2 = _MockTemplate();
       when(() => template2.name).thenReturn('template2');
       when(() => template2.help).thenReturn('template2 help');
       when(() => template2.bundle).thenReturn(bundle);
@@ -929,7 +886,6 @@ Run "runner help" to see global options.''';
       test('with default options', () {
         final command = _TestCreateSubCommandMultiTemplate(
           templates: templates,
-          analytics: analytics,
           logger: logger,
           generatorFromBundle: null,
           generatorFromBrick: null,
@@ -967,8 +923,8 @@ Run "runner help" to see global options.''';
       late _TestCommandRunner runner;
 
       setUp(() {
-        hooks = MockGeneratorHooks();
-        generator = MockMasonGenerator();
+        hooks = _MockGeneratorHooks();
+        generator = _MockMasonGenerator();
 
         when(() => generator.hooks).thenReturn(hooks);
         when(
@@ -1010,7 +966,6 @@ Run "runner help" to see global options.''';
 
         final command = _TestCreateSubCommandMultiTemplate(
           templates: templates,
-          analytics: analytics,
           logger: logger,
           generatorFromBundle: (_) async => throw Exception('oops'),
           generatorFromBrick: (_) async => generator,
@@ -1084,29 +1039,25 @@ Usage: very_good create create_subcommand <project-name> [arguments]
 Run "runner help" to see global options.''';
 
     late Template template;
-    late MockBundle bundle;
+    late _MockBundle bundle;
 
     setUp(() {
-      bundle = MockBundle();
+      bundle = _MockBundle();
       when(() => bundle.name).thenReturn('test');
       when(() => bundle.description).thenReturn('Test bundle');
       when(() => bundle.version).thenReturn('<bundleversion>');
-      template = MockTemplate();
+      template = _MockTemplate();
       when(() => template.name).thenReturn('test');
       when(() => template.bundle).thenReturn(bundle);
       when(() => template.onGenerateComplete(any(), any())).thenAnswer(
         (_) async {},
       );
-      when(
-        () => analytics.sendEvent(any(), any(), label: any(named: 'label')),
-      ).thenAnswer((_) async {});
     });
 
     group('can be instantiated', () {
       test('with default options', () {
         final command = _TestCreateSubCommandWithPublishable(
           template: template,
-          analytics: analytics,
           logger: logger,
           generatorFromBundle: null,
           generatorFromBrick: null,
@@ -1130,8 +1081,8 @@ Run "runner help" to see global options.''';
       late _TestCommandRunner runner;
 
       setUp(() {
-        hooks = MockGeneratorHooks();
-        generator = MockMasonGenerator();
+        hooks = _MockGeneratorHooks();
+        generator = _MockMasonGenerator();
 
         when(() => generator.hooks).thenReturn(hooks);
         when(
@@ -1173,7 +1124,6 @@ Run "runner help" to see global options.''';
 
         final command = _TestCreateSubCommandWithPublishable(
           template: template,
-          analytics: analytics,
           logger: logger,
           generatorFromBundle: (_) async => throw Exception('oops'),
           generatorFromBrick: (_) async => generator,

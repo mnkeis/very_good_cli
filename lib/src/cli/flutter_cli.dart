@@ -84,10 +84,16 @@ class Flutter {
     bool recursive = false,
     Set<String> ignore = const {},
   }) async {
+    final initialCwd = cwd;
+
     await _runCommand(
       cmd: (cwd) async {
+        final relativePath = p.relative(cwd, from: initialCwd);
+        final path =
+            relativePath == '.' ? '.' : '.${p.context.separator}$relativePath';
+
         final installProgress = logger.progress(
-          'Running "flutter packages get" in $cwd',
+          'Running "flutter packages get" in $path ',
         );
 
         try {
@@ -188,6 +194,8 @@ class Flutter {
     FlutterTestRunner testRunner = flutterTest,
     GeneratorBuilder buildGenerator = MasonGenerator.fromBundle,
   }) async {
+    final initialCwd = cwd;
+
     return _runCommand<int>(
       cmd: (cwd) async {
         final lcovPath = p.join(cwd, 'coverage', 'lcov.info');
@@ -200,14 +208,17 @@ class Flutter {
         void noop(String? _) {}
         final target = DirectoryGeneratorTarget(Directory(p.normalize(cwd)));
         final workingDirectory = target.dir.absolute.path;
+        final relativePath = p.relative(workingDirectory, from: initialCwd);
+        final path =
+            relativePath == '.' ? '.' : '.${p.context.separator}$relativePath';
 
         stdout?.call(
-          'Running "flutter test" in ${p.dirname(workingDirectory)}...\n',
+          'Running "flutter test" in $path ...\n',
         );
 
         if (!Directory(p.join(target.dir.absolute.path, 'test')).existsSync()) {
           stdout?.call(
-            'No test folder found in ${target.dir.absolute.path}\n',
+            'No test folder found in $path\n',
           );
           return ExitCode.success.code;
         }
@@ -247,9 +258,9 @@ class Flutter {
               ...?arguments,
               if (randomSeed != null) ...[
                 '--test-randomize-ordering-seed',
-                randomSeed
+                randomSeed,
               ],
-              if (optimizePerformance) p.join('test', _testOptimizerFileName)
+              if (optimizePerformance) p.join('test', _testOptimizerFileName),
             ],
             stdout: stdout ?? noop,
             stderr: stderr ?? noop,
@@ -308,7 +319,7 @@ Future<void> _verifyGitDependencies(
   final gitDependencies = [
     ...dependencies.entries,
     ...devDependencies.entries,
-    ...dependencyOverrides.entries
+    ...dependencyOverrides.entries,
   ]
       .where((entry) => entry.value is GitDependency)
       .map((entry) => entry.value)
@@ -449,7 +460,7 @@ Future<int> _flutterTest({
         final relativeTestPath = p.relative(testPath, from: cwd);
         failedTestErrorMessages[relativeTestPath] = [
           ...failedTestErrorMessages[relativeTestPath] ?? [],
-          '$prefix $testName'
+          '$prefix $testName',
         ];
       }
 
