@@ -131,7 +131,7 @@ class PackagesUpgradeCommand extends Command<int> {
     final majorVersions = _argResults['major-versions'] as bool;
     final target = _argResults.rest.length == 1 ? _argResults.rest[0] : '.';
     final targetPath = path.normalize(Directory(target).absolute.path);
-    final isFlutterInstalled = await Flutter.installed();
+    final isFlutterInstalled = await Flutter.installed(logger: _logger);
     if (isFlutterInstalled) {
       try {
         await Flutter.packagesUpgrade(

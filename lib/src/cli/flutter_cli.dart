@@ -122,21 +122,22 @@ class Flutter {
 
   /// Upgrade flutter dependencies (`flutter packages upgrade`).
   static Future<void> packagesUpgrade({
+    required Logger logger,
     String cwd = '.',
     bool recursive = false,
     bool majorVersions = false,
-    Logger? logger,
+    Set<String> ignore = const {},
   }) async {
     await _runCommand(
       cmd: (cwd) async {
-        final upgradeProgress = logger?.progress(
+        final upgradeProgress = logger.progress(
           'Running "flutter packages upgrade" in $cwd',
         );
 
         try {
-          await _verifyGitDependencies(cwd);
+          await _verifyGitDependencies(cwd, logger: logger);
         } catch (_) {
-          upgradeProgress?.fail();
+          upgradeProgress.fail();
           rethrow;
         }
 
@@ -145,13 +146,15 @@ class Flutter {
             'flutter',
             ['packages', 'upgrade', if (majorVersions) '--major-versions'],
             workingDirectory: cwd,
+            logger: logger,
           );
         } finally {
-          upgradeProgress?.complete();
+          upgradeProgress.complete();
         }
       },
       cwd: cwd,
       recursive: recursive,
+      ignore: ignore,
     );
   }
 
