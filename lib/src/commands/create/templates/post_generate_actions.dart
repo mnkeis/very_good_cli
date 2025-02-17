@@ -3,10 +3,7 @@ import 'package:universal_io/io.dart';
 import 'package:very_good_cli/src/cli/cli.dart';
 
 /// Runs `flutter pub get` in the [outputDir].
-Future<void> installDartPackages(
-  Logger logger,
-  Directory outputDir,
-) async {
+Future<void> installDartPackages(Logger logger, Directory outputDir) async {
   final isFlutterInstalled = await Flutter.installed(logger: logger);
   if (isFlutterInstalled) {
     final installDependenciesProgress = logger.progress(
